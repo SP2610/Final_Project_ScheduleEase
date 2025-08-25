@@ -1,0 +1,11 @@
+[
+  { "subject": "CS", "code": "141", "title": "Distributed Systems" },
+  { "subject": "CS", "code": "110", "title": "Software Construction" },
+  {
+    "subject": "CS",
+    "code": "161",
+    "title": "Design & Analysis of Algorithms"
+  },
+  { "subject": "MATH", "code": "009A", "title": "Calculus I" },
+  { "subject": "STAT", "code": "067", "title": "Intro to Probability & Stats" }
+]

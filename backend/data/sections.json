@@ -1,0 +1,106 @@
+[
+  {
+    "subject": "CS",
+    "code": "141",
+    "crn": "10101",
+    "type": "LEC",
+    "days": "MWF",
+    "start": "10:00",
+    "end": "10:50",
+    "prof": "Dr. Smith"
+  },
+  {
+    "subject": "CS",
+    "code": "141",
+    "crn": "10102",
+    "type": "LEC",
+    "days": "TR",
+    "start": "14:00",
+    "end": "15:15",
+    "prof": "Dr. Smith"
+  },
+
+  {
+    "subject": "CS",
+    "code": "110",
+    "crn": "10201",
+    "type": "LEC",
+    "days": "MWF",
+    "start": "11:00",
+    "end": "11:50",
+    "prof": "Prof. Lee"
+  },
+  {
+    "subject": "CS",
+    "code": "110",
+    "crn": "10202",
+    "type": "LEC",
+    "days": "TR",
+    "start": "09:30",
+    "end": "10:45",
+    "prof": "Prof. Lee"
+  },
+
+  {
+    "subject": "CS",
+    "code": "161",
+    "crn": "10301",
+    "type": "LEC",
+    "days": "MWF",
+    "start": "13:00",
+    "end": "13:50",
+    "prof": "Dr. Kim"
+  },
+  {
+    "subject": "CS",
+    "code": "161",
+    "crn": "10302",
+    "type": "LEC",
+    "days": "TR",
+    "start": "15:30",
+    "end": "16:45",
+    "prof": "Dr. Kim"
+  },
+
+  {
+    "subject": "MATH",
+    "code": "009A",
+    "crn": "20101",
+    "type": "LEC",
+    "days": "MWF",
+    "start": "08:00",
+    "end": "08:50",
+    "prof": "Dr. Patel"
+  },
+  {
+    "subject": "MATH",
+    "code": "009A",
+    "crn": "20102",
+    "type": "LEC",
+    "days": "TR",
+    "start": "10:00",
+    "end": "11:15",
+    "prof": "Dr. Patel"
+  },
+
+  {
+    "subject": "STAT",
+    "code": "067",
+    "crn": "30101",
+    "type": "LEC",
+    "days": "MWF",
+    "start": "09:00",
+    "end": "09:50",
+    "prof": "Dr. Johnson"
+  },
+  {
+    "subject": "STAT",
+    "code": "067",
+    "crn": "30102",
+    "type": "LEC",
+    "days": "TR",
+    "start": "12:00",
+    "end": "13:15",
+    "prof": "Dr. Johnson"
+  }
+]
