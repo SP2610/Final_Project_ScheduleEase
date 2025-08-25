@@ -3,6 +3,7 @@ import json
 import time
 import re
 from bs4 import BeautifulSoup
+from typing import Dict, List, Optional, Union
 
 class UCRCourseScraper:
     def __init__(self):
@@ -10,7 +11,6 @@ class UCRCourseScraper:
         self.base_url = "https://registrationssb.ucr.edu"
         self.unique_session_id = None
         self.synchronizer_token = None
-        
         
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
@@ -26,15 +26,12 @@ class UCRCourseScraper:
         })
 
     def initialize_session(self, term="202540"):
-        
         main_url = f"{self.base_url}/StudentRegistrationSsb"
         self.session.get(main_url)
         
-       
         term_url = f"{self.base_url}/StudentRegistrationSsb/ssb/term/termSelection?mode=search"
         self.session.get(term_url)
         
-       
         term_post_url = f"{self.base_url}/StudentRegistrationSsb/ssb/term/search"
         term_data = {
             'term': term,
@@ -57,7 +54,8 @@ class UCRCourseScraper:
         response = self.session.get(class_search_url)
         
         soup = BeautifulSoup(response.text, 'html.parser')
-    
+        
+        
         scripts = soup.find_all('script')
         for script in scripts:
             if script.string:
@@ -93,10 +91,8 @@ class UCRCourseScraper:
         self.unique_session_id = f"0vmfe{int(time.time() * 1000)}"
 
     def search_course(self, course_code, term="202540"):
-        
         if not self.unique_session_id:
             self.initialize_session(term)
-        
         
         match = re.match(r'([A-Z]+)(\d+)([A-Z]*)', course_code.upper())
         if not match:
@@ -106,7 +102,6 @@ class UCRCourseScraper:
         course_num = match.group(2)
         suffix = match.group(3)
         full_course = f"{subject}{course_num}{suffix}"
-        
         
         search_url = f"{self.base_url}/StudentRegistrationSsb/ssb/searchResults/searchResults"
         
@@ -143,263 +138,356 @@ class UCRCourseScraper:
         except json.JSONDecodeError:
             raise Exception("Invalid JSON response from server")
 
-    def search_by_subject(self, subject, term="202540"):
-       
-        if not self.unique_session_id:
-            self.initialize_session(term)
-        
-        search_url = f"{self.base_url}/StudentRegistrationSsb/ssb/searchResults/searchResults"
+    def get_linked_sections(self, crn: str, term: str = "202540") -> Dict:
+        url = f"{self.base_url}/StudentRegistrationSsb/ssb/searchResults/fetchLinkedSections"
         
         params = {
-            'txt_subject': subject.upper(),
-            'txt_term': term,
-            'startDatepicker': '',
-            'endDatepicker': '',
-            'uniqueSessionId': self.unique_session_id,
-            'pageOffset': '0',
-            'pageMaxSize': '100', 
-            'sortColumn': 'subjectDescription',
-            'sortDirection': 'asc'
-        }
-        
-        headers = {
-            'Accept': 'application/json, text/javascript, */*; q=0.01',
-            'X-Requested-With': 'XMLHttpRequest',
-            'Referer': f"{self.base_url}/StudentRegistrationSsb/ssb/classSearch/classSearch",
-            'Cache-Control': 'no-cache, no-store'
-        }
-        
-        if self.synchronizer_token:
-            headers['X-Synchronizer-Token'] = self.synchronizer_token
-        
-        response = self.session.get(search_url, params=params, headers=headers)
-        
-        if response.status_code == 200:
-            try:
-                return response.json()
-            except json.JSONDecodeError:
-                raise Exception("Invalid JSON response from server")
-        
-        raise Exception(f"Subject search failed with status code: {response.status_code}")
-
-    def get_course_suggestions(self, search_term, term="202540"):
-        
-        if not self.unique_session_id:
-            self.initialize_session(term)
-        
-        url = f"{self.base_url}/StudentRegistrationSsb/ssb/classSearch/get_subjectcoursecombo"
-        
-        params = {
-            'searchTerm': search_term.lower(),
             'term': term,
-            'offset': '1',
-            'max': '50',
-            'uniqueSessionId': self.unique_session_id,
-            '_': str(int(time.time() * 1000))
+            'courseReferenceNumber': crn
         }
         
         headers = {
-            'Accept': 'application/json, text/javascript, */*; q=0.01',
-            'X-Requested-With': 'XMLHttpRequest',
-            'Referer': f"{self.base_url}/StudentRegistrationSsb/ssb/classSearch/classSearch",
-            'Cache-Control': 'no-cache, no-store'
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "User-Agent": "Mozilla/5.0",
+            "X-Requested-With": "XMLHttpRequest"
         }
         
-        if self.synchronizer_token:
-            headers['X-Synchronizer-Token'] = self.synchronizer_token
-        
-        response = self.session.get(url, params=params, headers=headers)
-        
-        if response.status_code == 200:
-            try:
+        try:
+            response = self.session.get(url, params=params, headers=headers)
+            
+            if response.status_code == 200:
                 return response.json()
-            except json.JSONDecodeError:
-                return []
-        return []
+            else:
+                return {"error": f"Failed with status code: {response.status_code}", "success": False}
+                
+        except Exception as e:
+            return {"error": str(e), "success": False}
 
-    def format_course_info(self, course_data):
-        
+    def identify_lecture_courses(self, course_data: Dict) -> List[Dict]:
         if not course_data.get('success') or not course_data.get('data'):
             return []
         
-        formatted_courses = []
+        lecture_courses = []
         
         for course in course_data['data']:
-            formatted = {
-                'course_code': f"{course['subject']}{course['courseNumber']}",
-                'course_title': course['courseTitle'],
-                'subject': course['subjectDescription'],
-                'credits': course['creditHours'],
-                'crn': course['courseReferenceNumber'],
-                'section': course['sequenceNumber'],
-                'term': course['termDesc'],
-                'enrollment': {
-                    'current': course['enrollment'],
-                    'maximum': course['maximumEnrollment'],
-                    'available': course['seatsAvailable']
-                },
-                'waitlist': {
-                    'capacity': course['waitCapacity'],
-                    'count': course['waitCount'],
-                    'available': course['waitAvailable']
-                },
-                'schedule': [],
-                'instructors': [],
-                'open_section': course['openSection'],
-                'instructional_method': course.get('instructionalMethodDescription', 'Unknown')
+
+            schedule_type = course.get('scheduleTypeDescription', '').lower()
+            instructional_method = course.get('instructionalMethodDescription', '').lower()
+            
+
+            is_lecture = (
+                'lecture' in schedule_type or
+                'lec' in schedule_type or
+                schedule_type == '' or  
+                'in-person' in instructional_method
+            )
+            
+
+            non_lecture_types = ['lab', 'laboratory', 'discussion', 'seminar', 'studio', 'clinic', 'internship']
+            is_non_lecture = any(nl_type in schedule_type for nl_type in non_lecture_types)
+            
+            if is_lecture and not is_non_lecture:
+                lecture_info = {
+                    'crn': course['courseReferenceNumber'],
+                    'course_title': course['courseTitle'],
+                    'course_code': f"{course['subject']}{course['courseNumber']}",
+                    'section': course['sequenceNumber'],
+                    'subject': course['subject'],
+                    'course_number': course['courseNumber'],
+                    'schedule_type': course.get('scheduleTypeDescription', 'Unknown'),
+                    'enrollment': {
+                        'current': course['enrollment'],
+                        'maximum': course['maximumEnrollment'],
+                        'available': course['seatsAvailable']
+                    },
+                    'instructors': [f['displayName'] for f in course.get('faculty', [])],
+                    'is_linked': course.get('isSectionLinked', False),
+                    'link_identifier': course.get('linkIdentifier', None)
+                }
+                lecture_courses.append(lecture_info)
+        
+        return lecture_courses
+
+    def analyze_course_complete(self, course_code: str, term: str = "202540") -> Dict:
+        try:
+            print(f" Course Analysis - {course_code.upper()}")
+            print("="*50)
+            
+
+            print(f"\n Searching for {course_code.upper()}...")
+            course_data = self.search_course(course_code, term)
+            
+            if not course_data.get('success'):
+                print(f" Failed to find {course_code.upper()}")
+                return {
+                    'success': False,
+                    'error': f'Course {course_code.upper()} not found',
+                    'course_code': course_code.upper()
+                }
+            
+            print(f" Found {course_data['totalCount']} total sections for {course_code.upper()}")
+            
+
+            print(f"\n Identifying lecture sections...")
+            lecture_courses = self.identify_lecture_courses(course_data)
+            
+            if not lecture_courses:
+                print(" No lecture sections found")
+                return {
+                    'success': False,
+                    'error': 'No lecture sections found',
+                    'course_code': course_code.upper(),
+                    'all_sections': course_data['data']
+                }
+            
+            print(f"Found {len(lecture_courses)} lecture section(s):")
+            for i, lecture in enumerate(lecture_courses, 1):
+                print(f"   {i}. CRN: {lecture['crn']} - Section: {lecture['section']} - {lecture['course_title']}")
+            
+
+            print(f"\n Getting linked sections for each lecture...")
+            
+
+            unique_labs = {}
+            unique_discussions = {}
+            unique_other = {}
+            
+            complete_results = {
+                'course_code': course_code.upper(),
+                'term': term,
+                'total_sections_found': course_data['totalCount'],
+                'lecture_sections_found': len(lecture_courses),
+                'lecture_details': []
             }
             
-            
-            for meeting in course.get('meetingsFaculty', []):
-                if 'meetingTime' in meeting:
-                    mt = meeting['meetingTime']
-                    
-                    
-                    begin_time = mt['beginTime']
-                    end_time = mt['endTime']
-                    
-                    if begin_time and end_time:
-                        begin_formatted = f"{int(begin_time[:2])}:{begin_time[2:]}"
-                        end_formatted = f"{int(end_time[:2])}:{end_time[2:]}"
-                        time_str = f"{begin_formatted}-{end_formatted}"
+            for i, lecture in enumerate(lecture_courses, 1):
+                print(f"\n   Processing Lecture {i}:")
+                print(f"      Course: {course_code.upper()} - {lecture['course_title']}")
+                print(f"      CRN: {lecture['crn']}")
+                print(f"      Section: {lecture['section']}")
+                
+
+                print(f"      Fetching linked sections...")
+                linked_data = self.get_linked_sections(lecture['crn'], term)
+                
+                lecture_result = {
+                    'lecture_info': lecture,
+                    'linked_sections_raw': linked_data,
+                    'labs': [],
+                    'discussions': [],
+                    'other_sections': []
+                }
+                
+                if linked_data and not linked_data.get('error'):
+
+                    if linked_data.get('linkedData') and len(linked_data['linkedData']) > 0:
+
+                        all_linked_sections = []
+                        for section_group in linked_data['linkedData']:
+                            if isinstance(section_group, list):
+                                all_linked_sections.extend(section_group)
+                            else:
+                                all_linked_sections.append(section_group)
+                        
+                        print(f"      Found {len(all_linked_sections)} linked section(s)")
+                        
+
+                        for section in all_linked_sections:
+                            crn = section['courseReferenceNumber']
+                            section_type = section.get('scheduleTypeDescription', '').lower()
+                            
+
+                            meeting_info = "TBA"
+                            location_info = "TBA"
+                            if section.get('meetingsFaculty'):
+                                for meeting in section['meetingsFaculty']:
+                                    if meeting.get('meetingTime'):
+                                        mt = meeting['meetingTime']
+                                        begin_time = mt.get('beginTime', '')
+                                        end_time = mt.get('endTime', '')
+                                        
+                                        if begin_time and end_time:
+                                            begin_formatted = f"{int(begin_time[:2])}:{begin_time[2:]}"
+                                            end_formatted = f"{int(end_time[:2])}:{end_time[2:]}"
+                                            meeting_info = f"{begin_formatted}-{end_formatted}"
+                                        
+
+                                        days = []
+                                        days_map = {
+                                            'monday': 'M', 'tuesday': 'T', 'wednesday': 'W',
+                                            'thursday': 'R', 'friday': 'F', 'saturday': 'S', 'sunday': 'U'
+                                        }
+                                        
+                                        for day, abbrev in days_map.items():
+                                            if mt.get(day):
+                                                days.append(abbrev)
+                                        
+                                        day_str = ''.join(days) if days else 'TBA'
+                                        meeting_info = f"{day_str} {meeting_info}"
+                                        
+                                        building = mt.get('buildingDescription', 'TBA')
+                                        room = mt.get('room', '')
+                                        location_info = f"{building} {room}".strip()
+                                        break
+                            
+                            section_info = {
+                                'crn': crn,
+                                'section': section['sequenceNumber'],
+                                'type': section.get('scheduleTypeDescription', 'Unknown'),
+                                'title': section.get('courseTitle', ''),
+                                'enrollment': section['enrollment'],
+                                'maximum_enrollment': section['maximumEnrollment'],
+                                'available': section['seatsAvailable'],
+                                'waitlist_count': section.get('waitCount', 0),
+                                'waitlist_available': section.get('waitAvailable', 0),
+                                'instructors': [f['displayName'] for f in section.get('faculty', [])],
+                                'meeting_time': meeting_info,
+                                'location': location_info,
+                                'link_identifier': section.get('linkIdentifier', ''),
+                                'linked_to_lectures': [lecture['crn']]  
+                            }
+                            
+
+                            if 'lab' in section_type:
+                                if crn not in unique_labs:
+                                    unique_labs[crn] = section_info
+                                    print(f"         Lab: CRN {crn} (Section {section_info['section']}) - {meeting_info} @ {location_info}")
+                                else:
+
+                                    unique_labs[crn]['linked_to_lectures'].append(lecture['crn'])
+                                    print(f"         Lab CRN {crn} also linked to this lecture")
+                                
+                                lecture_result['labs'].append(section_info)
+                                
+                            elif 'discussion' in section_type or 'disc' in section_type:
+                                if crn not in unique_discussions:
+                                    unique_discussions[crn] = section_info
+                                    print(f"         Discussion: CRN {crn} (Section {section_info['section']}) - {meeting_info} @ {location_info}")
+                                else:
+
+                                    unique_discussions[crn]['linked_to_lectures'].append(lecture['crn'])
+                                    print(f"         Discussion CRN {crn} also linked to this lecture")
+                                
+                                lecture_result['discussions'].append(section_info)
+                                
+                            else:
+                                if crn not in unique_other:
+                                    unique_other[crn] = section_info
+                                    print(f"         {section_info['type']}: CRN {crn} (Section {section_info['section']}) - {meeting_info} @ {location_info}")
+                                else:
+
+                                    unique_other[crn]['linked_to_lectures'].append(lecture['crn'])
+                                    print(f"         {section_info['type']} CRN {crn} also linked to this lecture")
+                                
+                                lecture_result['other_sections'].append(section_info)
                     else:
-                        time_str = "TBA"
-                    
-                    schedule_info = {
-                        'days': [],
-                        'time': time_str,
-                        'location': f"{mt.get('buildingDescription', 'TBA')} {mt.get('room', '')}".strip(),
-                        'start_date': mt.get('startDate'),
-                        'end_date': mt.get('endDate'),
-                        'meeting_type': mt.get('meetingTypeDescription', 'Unknown')
-                    }
-                    
-                    
-                    days_map = {
-                        'monday': 'M', 'tuesday': 'T', 'wednesday': 'W',
-                        'thursday': 'R', 'friday': 'F', 'saturday': 'S', 'sunday': 'U'
-                    }
-                    
-                    for day, abbrev in days_map.items():
-                        if mt.get(day):
-                            schedule_info['days'].append(abbrev)
-                    
-                    formatted['schedule'].append(schedule_info)
-            
-            
-            for faculty in course.get('faculty', []):
-                formatted['instructors'].append({
-                    'name': faculty['displayName'],
-                    'email': faculty['emailAddress'],
-                    'primary': faculty['primaryIndicator']
-                })
-            
-            formatted_courses.append(formatted)
-        
-        return formatted_courses
+                        print(f"        No linked sections found")
+                        lecture_result['linked_sections_raw'] = {'message': 'No linked sections'}
+                else:
+                    error_msg = linked_data.get('error', 'Unknown error') if linked_data else 'Failed to fetch'
+                    print(f"       Error getting linked sections: {error_msg}")
+                    lecture_result['linked_sections_raw'] = {'error': error_msg}
+                
+                complete_results['lecture_details'].append(lecture_result)
+                
 
-    def search_multiple_courses(self, course_codes, term="202540"):
-        
-        results = {}
-        
-        for course_code in course_codes:
-            try:
-                result = self.search_course(course_code, term)
-                results[course_code] = result
-                time.sleep(0.5)  
-            except Exception as e:
-                results[course_code] = {"error": str(e), "success": False}
-        
-        return results
+                time.sleep(0.5)
+            
 
+            complete_results['unique_linked_sections'] = {
+                'labs': list(unique_labs.values()),
+                'discussions': list(unique_discussions.values()),
+                'other': list(unique_other.values())
+            }
+            
+
+            print(f"\n Summary for {course_code.upper()}:")
+            print("-" * 40)
+            
+            print(f" Total Sections Found: {complete_results['total_sections_found']}")
+            print(f" Lecture Sections: {complete_results['lecture_sections_found']}")
+            print(f" Unique Lab Sections: {len(unique_labs)}")
+            print(f" Unique Discussion Sections: {len(unique_discussions)}")
+            print(f" Other Unique Linked Sections: {len(unique_other)}")
+            
+
+            shared_count = 0
+            for lab_crn, lab_info in unique_labs.items():
+                if len(lab_info['linked_to_lectures']) > 1:
+                    print(f"   Lab CRN {lab_crn} is shared by {len(lab_info['linked_to_lectures'])} lectures")
+                    shared_count += 1
+            
+            for disc_crn, disc_info in unique_discussions.items():
+                if len(disc_info['linked_to_lectures']) > 1:
+                    print(f"   Discussion CRN {disc_crn} is shared by {len(disc_info['linked_to_lectures'])} lectures")
+                    shared_count += 1
+            
+            for other_crn, other_info in unique_other.items():
+                if len(other_info['linked_to_lectures']) > 1:
+                    print(f"   {other_info['type']} CRN {other_crn} is shared by {len(other_info['linked_to_lectures'])} lectures")
+                    shared_count += 1
+            
+            if shared_count > 0:
+                print(f" Found {shared_count} shared section(s) across multiple lectures")
+            
+            complete_results['success'] = True
+            return complete_results
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e),
+                'course_code': course_code.upper()
+            }
 
 def save_to_json(data, filename):
-    
     with open(filename, 'w') as f:
         json.dump(data, f, indent=2)
     print(f"Data saved to {filename}")
 
-def print_course_summary(course_data):
-    
-    if not course_data.get('success'):
-        print("No results found")
-        return
-    
-    courses = course_data['data']
-    print(f"Found {len(courses)} sections:")
-    
-    for course in courses:
-        print(f"\n  {course['subject']} {course['courseNumber']}-{course['sequenceNumber']} (CRN: {course['courseReferenceNumber']})")
-        print(f"  {course['courseTitle']}")
-        print(f"  Credits: {course['creditHours']}")
-        print(f"  Enrollment: {course['enrollment']}/{course['maximumEnrollment']} (Available: {course['seatsAvailable']})")
-        print(f"  Instructors: {', '.join([f['displayName'] for f in course.get('faculty', [])])}")
-        
-        for meeting in course.get('meetingsFaculty', []):
-            if 'meetingTime' in meeting:
-                mt = meeting['meetingTime']
-                days = []
-                day_mapping = {'monday': 'M', 'tuesday': 'T', 'wednesday': 'W', 'thursday': 'R', 'friday': 'F'}
-                for day, abbrev in day_mapping.items():
-                    if mt.get(day):
-                        days.append(abbrev)
-                
-                time_str = f"{mt['beginTime']}-{mt['endTime']}" if mt.get('beginTime') else "TBA"
-                location = f"{mt.get('buildingDescription', 'TBA')} {mt.get('room', '')}".strip()
-                print(f"  Schedule: {''.join(days)} {time_str} @ {location}")
-
 def main():
-    
     scraper = UCRCourseScraper()
-    
     try:
-        print("=== UCR Course Scraper ===\n")
         
+        course_to_analyze = "CS100" 
         
-        print("1. Searching for CS100...")
-        cs100_result = scraper.search_course("CS100")
-        print_course_summary(cs100_result)
+
+        result = scraper.analyze_course_complete(course_to_analyze)
         
-       
-        save_to_json(cs100_result, 'cs100_results.json')
-        
-        print("\n" + "="*50 + "\n")
-        
-        
-        print("2. Searching for all CS courses (first 5)...")
-        cs_courses = scraper.search_by_subject("CS")
-        if cs_courses.get('success') and cs_courses.get('data'):
-            print(f"Found {cs_courses['totalCount']} total CS courses")
+        if result['success']:
+
+            filename = f"{course_to_analyze.lower().replace(' ', '_')}_analysis.json"
+            save_to_json(result, filename)
             
-            limited_result = cs_courses.copy()
-            limited_result['data'] = cs_courses['data'][:5]
-            print_course_summary(limited_result)
-        
-        print("\n" + "="*50 + "\n")
-        
-        
-        print("3. Searching for multiple courses...")
-        course_list = ["CS100", "CS010C", "MATH009A"]
-        multiple_results = scraper.search_multiple_courses(course_list)
-        
-        for course_code, result in multiple_results.items():
-            if result.get('success'):
-                print(f"{course_code}: {result['totalCount']} sections found")
-            else:
-                print(f"{course_code}: No results or error")
-        
-        print("\n" + "="*50 + "\n")
-        
-        print("4. Getting course suggestions for 'cs'...")
-        suggestions = scraper.get_course_suggestions("cs")
-        print(f"Found {len(suggestions)} suggestions:")
-        for i, suggestion in enumerate(suggestions[:10], 1):  
-            print(f"  {i}. {suggestion['code']} - {suggestion['description']}")
+            print(f"\n {course_to_analyze} analysis completed successfully!")
+            print(f"Results saved to {filename}")
+        else:
+            print(f"Analysis failed: {result.get('error', 'Unknown error')}")
         
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Critical error: {e}")
         import traceback
         traceback.print_exc()
 
+def analyze_multiple_courses(course_codes: List[str], term: str = "202540"):
+    scraper = UCRCourseScraper()
+    results = {}
+    
+    for course_code in course_codes:
+        print(f"\n{'='*60}")
+        try:
+            result = scraper.analyze_course_complete(course_code, term)
+            results[course_code.upper()] = result
+            time.sleep(2)  
+        except Exception as e:
+            results[course_code.upper()] = {
+                "error": str(e), 
+                "success": False,
+                "course_code": course_code.upper()
+            }
+    
+    return results
+
 if __name__ == "__main__":
     main()
+    
