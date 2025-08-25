@@ -13,9 +13,15 @@ app.use(express.json({ limit: "64kb" }));
 app.use(morgan("dev"));
 
 // a simple test route to verify wiring
-app.get("/api/health", (_req, res) => res.json({ ok: true, service: "api" }));
+app.get("/api/health", (_req, res) => res.json({ ok: true, service: "api" })); //test route
 
-const PORT = process.env.PORT || 3000;
+const coursesRouter = require("./routes/courses"); //import router
+const schedulesRouter = require("./routes/schedules"); //import router
+
+app.use("/api/courses", coursesRouter); //use router
+app.use("/api/schedules", schedulesRouter); //use router
+
+const PORT = process.env.PORT || 3000; //start server
 app.listen(PORT, () =>
   console.log(`API listening on http://localhost:${PORT}`)
 );
