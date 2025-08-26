@@ -1,14 +1,12 @@
 // frontend/src/pages/Results.jsx
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
-import { exportICS, exportJSON, printSchedule, shareText } from "../lib/share";
+import { exportICS, printSchedule, shareText } from "../lib/share";
 import ResultsTimetable from "./ResultsTimeTable";
 
 export default function Results() {
-  const [schedules, setSchedules] = useState(null); // null = loading, [] = none
+  const [schedules, setSchedules] = useState(null);
   const [error, setError] = useState("");
-
-  // read prefs once (safe-parse)
   const [prefs] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("prefs") || "{}");
@@ -25,10 +23,8 @@ export default function Results() {
       setSchedules([]);
       return;
     }
-
     setSchedules(null);
     setError("");
-
     api
       .post("/schedules/generate", { courses: chosen, prefs })
       .then((res) =>
@@ -40,27 +36,37 @@ export default function Results() {
       });
   }, []);
 
-  // Save to LocalStorage AND download a JSON file
-  const savePlan = (sch) => {
-    const plans = JSON.parse(localStorage.getItem("plans") || "[]");
+  async function exportToGoogle(plan, name) {
+    try {
+      const { data } = await api.post("/calendar/export", {
+        name,
+        blocks: plan.blocks || [],
+      });
+      if (data.ok) {
+        alert(
+          `Added ${data.created} class${
+            data.created === 1 ? "" : "es"
+          } to your Google Calendar.`
+        );
+      } else {
+        throw new Error(data.error || "Export failed");
+      }
+    } catch (e) {
+      // If backend needs re-consent it returns 428 + authUrl
+      const needConsent =
+        e?.response?.status === 428 && e?.response?.data?.authUrl;
+      if (needConsent) {
+        window.location.href = `http://localhost:3000${e.response.data.authUrl}`;
+        return;
+      }
+      const msg =
+        e?.response?.data?.error ||
+        e?.message ||
+        "Network error while adding to Google Calendar";
+      alert(msg);
+    }
+  }
 
-    const toSave = {
-      id: Date.now(),
-      name: `Plan ${plans.length + 1}`,
-      ...sch,
-      savedAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem("plans", JSON.stringify([toSave, ...plans]));
-    exportJSON(toSave, toSave.name);
-  };
-
-  const copyCRNs = (crns = []) => {
-    navigator.clipboard.writeText(crns.join(", "));
-    alert("CRNs copied");
-  };
-
-  // UI states
   if (schedules === null) return <p className="muted">Generating…</p>;
   if (error) return <p style={{ color: "#fca5a5" }}>{error}</p>;
   if (!schedules.length)
@@ -105,14 +111,32 @@ export default function Results() {
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               <button
                 className="btn btn-primary"
-                onClick={() => savePlan(sch)}
+                onClick={() => {
+                  const plans = JSON.parse(
+                    localStorage.getItem("plans") || "[]"
+                  );
+                  const toSave = {
+                    id: Date.now(),
+                    name: `Plan ${plans.length + 1}`,
+                    ...sch,
+                    savedAt: new Date().toISOString(),
+                  };
+                  localStorage.setItem(
+                    "plans",
+                    JSON.stringify([toSave, ...plans])
+                  );
+                  alert("Saved! (check the Plans page)");
+                }}
               >
                 Save Plan
               </button>
 
               <button
                 className="btn"
-                onClick={() => copyCRNs(sch.crns || [])}
+                onClick={() => {
+                  navigator.clipboard.writeText((sch.crns || []).join(", "));
+                  alert("CRNs copied");
+                }}
               >
                 Copy CRNs
               </button>
@@ -123,19 +147,26 @@ export default function Results() {
               >
                 Print / Save PDF
               </button>
-
               <button
                 className="btn"
                 onClick={() => exportICS(sch, `Plan ${idx + 1}`)}
               >
                 Export .ICS
               </button>
-
               <button
                 className="btn"
                 onClick={() => shareText(sch)}
               >
                 Share (copy text)
+              </button>
+
+              <button
+                className="btn"
+                onClick={() =>
+                  exportToGoogle(sch, `SchedulEase — Plan ${idx + 1}`)
+                }
+              >
+                Add to Google Calendar
               </button>
             </div>
           </section>
