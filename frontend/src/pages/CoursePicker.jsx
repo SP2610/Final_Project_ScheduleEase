@@ -17,7 +17,6 @@ export default function CoursePicker() {
   }, []);
 
   const toggle = (c) => {
-    const key = c.subject + " " + c.code;
     const exists = selected.find(
       (x) => x.subject === c.subject && x.code === c.code
     );
@@ -30,7 +29,8 @@ export default function CoursePicker() {
   const goResults = () => {
     sessionStorage.setItem("selectedCourses", JSON.stringify(selected));
     localStorage.setItem("prefs", JSON.stringify(prefs));
-    nav("/results");
+    // ✅ New path under /app
+    nav("/app/results");
   };
 
   return (

@@ -1,23 +1,63 @@
 // backend/server.js
-require("dotenv").config(); // reads backend/.env
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const { MongoClient } = require("mongodb");
 
+// auth deps
+const session = require("express-session");
+const passport = require("passport");
+
 const app = express();
 
-/* ---------- Core middleware ---------- */
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+/* ----------------------------------------
+   Core middleware (must run BEFORE routes)
+----------------------------------------- */
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+
+app.use(
+  cors({
+    origin: CLIENT_URL,
+    credentials: true, // allow cookies
+  })
+);
 app.use(express.json({ limit: "64kb" }));
 app.use(morgan("dev"));
 
-/* ---------- Health (API) ---------- */
+/* ----------------------------------------
+   Sessions + Passport (must be before any
+   route that reads req.user)
+----------------------------------------- */
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "dev-secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false, // true only behind HTTPS in prod
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    },
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Auth routes (Google OAuth)
+app.use("/api/auth", require("./auth/google"));
+
+/* ----------------------------------------
+   Health
+----------------------------------------- */
 app.get("/api/health", (_req, res) => res.json({ ok: true, service: "api" }));
 
-/* ---------- MongoDB wiring ---------- */
-const MONGO_URI = process.env.MONGO_URI; // required
-const DB_NAME = process.env.DB_NAME || "scheduleease"; // optional default
+/* ----------------------------------------
+   MongoDB wiring
+----------------------------------------- */
+const MONGO_URI = process.env.MONGO_URI;
+const DB_NAME = process.env.DB_NAME || "scheduleEase";
 
 if (!MONGO_URI) {
   console.error("❌ Missing MONGO_URI in backend/.env");
@@ -29,8 +69,6 @@ const client = new MongoClient(MONGO_URI, { serverSelectionTimeoutMS: 5000 });
 async function startMongo() {
   await client.connect();
   const db = client.db(DB_NAME);
-
-  // make db & commonly used collections available everywhere
   app.locals.db = db;
   app.locals.collections = {
     courses: db.collection("courses"),
@@ -38,7 +76,6 @@ async function startMongo() {
     plans: db.collection("plans"),
     professors: db.collection("professors"),
   };
-
   console.log(`✅ MongoDB connected • DB: ${DB_NAME}`);
 }
 startMongo().catch((err) => {
@@ -46,8 +83,7 @@ startMongo().catch((err) => {
   process.exit(1);
 });
 
-// optional: quick DB health check
-app.get("/api/db/health", async (req, res) => {
+app.get("/api/db/health", async (_req, res) => {
   try {
     await app.locals.db.command({ ping: 1 });
     res.json({ ok: true, db: DB_NAME });
@@ -56,27 +92,51 @@ app.get("/api/db/health", async (req, res) => {
   }
 });
 
-/* ---------- Your existing routers ---------- */
-const coursesRouter = require("./routes/courses");
-const schedulesRouter = require("./routes/schedules");
-
-// Example: pass db to routers if/when you migrate them to Mongo later
+/* ----------------------------------------
+   Attach db/collections to req
+----------------------------------------- */
 app.use((req, _res, next) => {
   req.db = app.locals.db;
   req.collections = app.locals.collections;
   next();
 });
 
-app.use("/api/courses", coursesRouter);
-app.use("/api/schedules", schedulesRouter);
+/* ----------------------------------------
+   Your existing routers
+----------------------------------------- */
+app.use("/api/courses", require("./routes/courses"));
+app.use("/api/schedules", require("./routes/schedules"));
 
-/* ---------- Start server & graceful shutdown ---------- */
+/* ----------------------------------------
+   Google Calendar router (AFTER cors+session+passport)
+----------------------------------------- */
+app.use("/api/calendar", require("./routes/calendar"));
+
+/* ----------------------------------------
+   Frontend auth helpers
+----------------------------------------- */
+app.get("/api/me", (req, res) => {
+  if (req.user) return res.json({ user: req.user });
+  res.status(401).json({ error: "not signed in" });
+});
+
+app.post("/api/logout", (req, res) => {
+  req.logout(() => {
+    req.session.destroy(() => {
+      res.clearCookie("connect.sid");
+      res.json({ ok: true });
+    });
+  });
+});
+
+/* ----------------------------------------
+   Start server & graceful shutdown
+----------------------------------------- */
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () =>
   console.log(`🚀 API listening on http://localhost:${PORT}`)
 );
 
-// close Mongo nicely on exit
 ["SIGINT", "SIGTERM"].forEach((sig) =>
   process.on(sig, async () => {
     console.log(`\n🛑 ${sig} received, closing...`);
