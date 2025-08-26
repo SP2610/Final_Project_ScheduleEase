@@ -1,10 +1,14 @@
+// frontend/src/pages/Results.jsx
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
+import { exportICS, exportJSON, printSchedule, shareText } from "../lib/share";
 import ResultsTimetable from "./ResultsTimeTable";
 
 export default function Results() {
-  const [schedules, setSchedules] = useState(null);
+  const [schedules, setSchedules] = useState(null); // null = loading, [] = none
   const [error, setError] = useState("");
+
+  // read prefs once (safe-parse)
   const [prefs] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("prefs") || "{}");
@@ -21,8 +25,10 @@ export default function Results() {
       setSchedules([]);
       return;
     }
+
     setSchedules(null);
     setError("");
+
     api
       .post("/schedules/generate", { courses: chosen, prefs })
       .then((res) =>
@@ -34,6 +40,27 @@ export default function Results() {
       });
   }, []);
 
+  // Save to LocalStorage AND download a JSON file
+  const savePlan = (sch) => {
+    const plans = JSON.parse(localStorage.getItem("plans") || "[]");
+
+    const toSave = {
+      id: Date.now(),
+      name: `Plan ${plans.length + 1}`,
+      ...sch,
+      savedAt: new Date().toISOString(),
+    };
+
+    localStorage.setItem("plans", JSON.stringify([toSave, ...plans]));
+    exportJSON(toSave, toSave.name);
+  };
+
+  const copyCRNs = (crns = []) => {
+    navigator.clipboard.writeText(crns.join(", "));
+    alert("CRNs copied");
+  };
+
+  // UI states
   if (schedules === null) return <p className="muted">Generating…</p>;
   if (error) return <p style={{ color: "#fca5a5" }}>{error}</p>;
   if (!schedules.length)
@@ -75,36 +102,40 @@ export default function Results() {
               <ResultsTimetable blocks={sch.blocks || []} />
             </div>
 
-            <div style={{ display: "flex", gap: 10 }}>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               <button
                 className="btn btn-primary"
-                onClick={() => {
-                  const plans = JSON.parse(
-                    localStorage.getItem("plans") || "[]"
-                  );
-                  const toSave = {
-                    id: Date.now(),
-                    name: `Plan ${plans.length + 1}`,
-                    ...sch,
-                    savedAt: new Date().toISOString(),
-                  };
-                  localStorage.setItem(
-                    "plans",
-                    JSON.stringify([toSave, ...plans])
-                  );
-                  alert("Saved!");
-                }}
+                onClick={() => savePlan(sch)}
               >
                 Save Plan
               </button>
+
               <button
                 className="btn"
-                onClick={() => {
-                  navigator.clipboard.writeText((sch.crns || []).join(", "));
-                  alert("CRNs copied");
-                }}
+                onClick={() => copyCRNs(sch.crns || [])}
               >
                 Copy CRNs
+              </button>
+
+              <button
+                className="btn"
+                onClick={() => printSchedule()}
+              >
+                Print / Save PDF
+              </button>
+
+              <button
+                className="btn"
+                onClick={() => exportICS(sch, `Plan ${idx + 1}`)}
+              >
+                Export .ICS
+              </button>
+
+              <button
+                className="btn"
+                onClick={() => shareText(sch)}
+              >
+                Share (copy text)
               </button>
             </div>
           </section>

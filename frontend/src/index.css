@@ -65,4 +65,23 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+  @media print {
+    nav,
+    .nav,
+    .tabs,
+    .actions button:not(:first-child) {
+      display: none !important;
+    }
+    main,
+    .container {
+      max-width: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+      background: #fff !important;
+    }
+    body {
+      background: #fff !important;
+    }
+  }
 }

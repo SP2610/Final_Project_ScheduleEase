@@ -1,7 +1,8 @@
-import { NavLink, Route, Routes } from "react-router-dom";
+import { Link, NavLink, Route, Routes } from "react-router-dom"; // <-- add Link here
 import "./App.css";
 import CoursePicker from "./pages/CoursePicker";
 import Home from "./pages/Home";
+import Plan from "./pages/Plan";
 import Results from "./pages/Results";
 
 export default function App() {
@@ -19,6 +20,13 @@ export default function App() {
             >
               Home
             </NavLink>
+            <Link
+              className="tab"
+              to="/plans"
+            >
+              Plans
+            </Link>{" "}
+            {/* optional: make it styled like the others */}
             <NavLink
               className={({ isActive }) => `tab ${isActive ? "active" : ""}`}
               to="/picker"
@@ -37,6 +45,10 @@ export default function App() {
 
       <main className="container stack">
         <Routes>
+          <Route
+            path="/plans"
+            element={<Plan />}
+          />
           <Route
             path="/"
             element={<Home />}
