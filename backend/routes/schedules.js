@@ -1,126 +1,245 @@
 const express = require("express");
 const router = express.Router();
-const sections = require("../data/sections.json");
+const { spawn } = require('child_process');
+const path = require('path');
 
-// POST /api/schedules/generate
-// body: { courses:[{subject,code}...], prefs:{ noFriday, startAfter, endBefore } }
-router.post("/generate", (req, res) => {
+
+router.post("/generate", async (req, res) => {
   const { courses = [], prefs = {} } = req.body || {};
   if (!Array.isArray(courses) || courses.length === 0) {
     return res.status(400).json({ error: "courses[] required" });
   }
 
-  function toMin(t) {
-    const [h, m] = t.split(":").map(Number);
-    return h * 60 + m;
-  }
-  const startAfter = prefs.startAfter || "00:00";
-  const endBefore = prefs.endBefore || "23:59";
-  const noFriday = !!prefs.noFriday;
-  const minStart = toMin(startAfter),
-    maxEnd = toMin(endBefore);
+  
+  
+  const courseCodes = courses.map(course => {
+    if (typeof course === 'string') {
+      return course;
+    } else if (course.subject && course.code) {
+      return `${course.subject}${course.code}`;
+    } else {
+      return null;
+    }
+  }).filter(Boolean);
 
-  function passPrefs(sec) {
-    if (noFriday && sec.days.includes("F")) return false;
-    if (toMin(sec.start) < minStart) return false;
-    if (toMin(sec.end) > maxEnd) return false;
-    return true;
-  }
 
-  const perCourse = courses.map((c) =>
-    sections
-      .filter((s) => s.subject === c.subject && s.code === c.code)
-      .filter(passPrefs)
-  );
+  try {
+    const pythonScriptPath = path.join(__dirname, '../../scripts/course_scraper.py');
+    
 
-  if (perCourse.some((list) => list.length === 0)) {
-    return res.json({ count: 0, schedules: [] });
-  }
-
-  function conflict(a, b) {
-    const overlapDay = [...a.days].some((d) => b.days.includes(d)); // e.g., "MWF"
-    if (!overlapDay) return false;
-    const a1 = toMin(a.start),
-      a2 = toMin(a.end);
-    const b1 = toMin(b.start),
-      b2 = toMin(b.end);
-    return a1 < b2 && b1 < a2;
-  }
-
-  const results = [];
-  const seen = new Set();
-
-  function fmt(m) {
-    return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(
-      m % 60
-    ).padStart(2, "0")}`;
-  }
-  function statsOf(pick) {
-    const starts = pick.map((x) => toMin(x.start));
-    const ends = pick.map((x) => toMin(x.end));
-    const earliest = Math.min(...starts);
-    const latest = Math.max(...ends);
-    // rough gap calc by day:
-    let gaps = 0;
-    const byDay = {};
-    pick.forEach((s) => {
-      [...s.days].forEach((d) => (byDay[d] ??= []).push(s));
+    const pythonPath = 'C:\\Users\\A\\AppData\\Local\\Programs\\Python\\Python313\\python.exe';
+    
+    const pythonProcess = spawn(pythonPath, [pythonScriptPath, 'generate', ...courseCodes], {
+      stdio: ['pipe', 'pipe', 'pipe']
     });
-    Object.values(byDay).forEach((list) => {
-      list.sort((a, b) => toMin(a.start) - toMin(b.start));
-      for (let i = 1; i < list.length; i++) {
-        const prevEnd = toMin(list[i - 1].end);
-        const curStart = toMin(list[i].start);
-        if (curStart > prevEnd) gaps += curStart - prevEnd;
-      }
+    
+    let stdout = '';
+    let stderr = '';
+    
+    pythonProcess.stdout.on('data', (data) => {
+      stdout += data.toString();
     });
-    const days = new Set(pick.flatMap((s) => [...s.days])).size;
-    return { earliest: fmt(earliest), latest: fmt(latest), gaps, days };
-  }
-
-  function mapDay(d) {
-    return { M: "Mon", T: "Tue", W: "Wed", R: "Thu", F: "Fri" }[d] || d;
-  }
-  function toBlocks(pick) {
-    const out = [];
-    pick.forEach((s) => {
-      [...s.days].forEach((d) => {
-        out.push({
-          day: mapDay(d),
-          start: s.start,
-          end: s.end,
-          title: `${s.subject} ${s.code} ${s.type || ""}`.trim(),
-          crn: s.crn,
-        });
-      });
+    
+    pythonProcess.stderr.on('data', (data) => {
+      stderr += data.toString();
     });
-    return out;
-  }
-
-  function dfs(i, pick) {
-    if (results.length >= 10) return; // cap results to keep fast
-    if (i === perCourse.length) {
-      const key = pick
-        .map((p) => p.crn)
-        .sort()
-        .join("-");
-      if (!seen.has(key)) {
-        seen.add(key);
-        results.push({
-          crns: pick.map((p) => p.crn),
-          stats: statsOf(pick),
-          blocks: toBlocks(pick),
+    
+    pythonProcess.on('close', (code) => {
+      if (code !== 0) {
+        console.error('Python script error:', stderr);
+        return res.status(500).json({ 
+          error: 'Failed to generate schedules', 
+          details: stderr || 'Python script execution failed'
         });
       }
-      return;
-    }
-    for (const sec of perCourse[i]) {
-      if (pick.every((p) => !conflict(p, sec))) dfs(i + 1, [...pick, sec]);
-    }
-  }
-  dfs(0, []);
+      
+      try {
+        const results = JSON.parse(stdout);
+        
+        if (!results.success) {
+          return res.status(400).json({
+            error: results.error || 'Schedule generation failed',
+            failed_courses: results.failed_courses || []
+          });
+        }
+        
 
-  res.json({ count: results.length, schedules: results });
+        const schedules = results.valid_schedules.map((schedule, index) => {
+          const blocks = [];
+          const crns = [];
+          
+          schedule.courses.forEach(course => {
+
+            if (course.lecture) {
+              const lectureBlocks = createScheduleBlocks(course.lecture, course.course_code, 'LEC');
+              blocks.push(...lectureBlocks);
+              crns.push(course.lecture.crn);
+            }
+            
+
+            if (course.lab) {
+              const labBlocks = createScheduleBlocks(course.lab, course.course_code, 'LAB');
+              blocks.push(...labBlocks);
+              crns.push(course.lab.crn);
+            }
+            
+            if (course.discussion) {
+              const discBlocks = createScheduleBlocks(course.discussion, course.course_code, 'DIS');
+              blocks.push(...discBlocks);
+              crns.push(course.discussion.crn);
+            }
+          });
+          
+          return {
+            crns,
+            blocks,
+            stats: calculateScheduleStats(blocks)
+          };
+        });
+        
+        res.json({
+          count: schedules.length,
+          schedules,
+          total_combinations: results.total_possible_combinations || schedules.length,
+          conflicting_combinations: results.conflicting_combinations_count || 0
+        });
+        
+      } catch (parseError) {
+        console.error('Error parsing Python output:', parseError);
+        console.error('Raw output:', stdout);
+        res.status(500).json({ 
+          error: 'Failed to parse schedule results',
+          details: parseError.message
+        });
+      }
+    });
+    
+    setTimeout(() => {
+      pythonProcess.kill('SIGTERM');
+      if (!res.headersSent) {
+        res.status(408).json({ error: 'Schedule generation timed out' });
+      }
+    }, 30000); 
+    
+  } catch (error) {
+    console.error('Error calling Python script:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate schedules',
+      details: error.message
+    });
+  }
 });
+
+function createScheduleBlocks(section, courseCode, type) {
+  const blocks = [];
+  const schedule = section.schedule || 'TBA';
+  const parts = schedule.split(' ');
+  const days = parts[0] || 'TBA';
+  const timeRange = parts.slice(1).join(' ') || 'TBA';
+  
+  const [startTime, endTime] = timeRange.includes(' - ') 
+    ? timeRange.split(' - ') 
+    : [timeRange, timeRange];
+  
+
+  if (days !== 'TBA') {
+    const dayMap = { M: 'Mon', T: 'Tue', W: 'Wed', R: 'Thu', F: 'Fri' };
+    for (const dayChar of days) {
+      if (dayMap[dayChar]) {
+        blocks.push({
+          day: dayMap[dayChar],
+          start: startTime || 'TBA',
+          end: endTime || 'TBA',
+          title: `${courseCode} ${type}`.trim(),
+          crn: section.crn,
+          location: section.location || 'TBA',
+          instructor: section.instructors ? section.instructors.join(', ') : 'TBA'
+        });
+      }
+    }
+  }
+  
+  return blocks;
+}
+
+function calculateScheduleStats(blocks) {
+  const fBlocks = blocks.flat();
+  
+  if (fBlocks.length === 0) {
+    return { earliest: 'TBA', latest: 'TBA', gaps: 0, days: 0 };
+  }
+  
+  const times = fBlocks
+    .filter(block => block.start !== 'TBA' && block.end !== 'TBA')
+    .map(block => ({
+      start: timeToMinutes(block.start),
+      end: timeToMinutes(block.end)
+    }))
+    .filter(time => time.start !== -1 && time.end !== -1);
+  
+  if (times.length === 0) {
+    return { earliest: 'TBA', latest: 'TBA', gaps: 0, days: 0 };
+  }
+  
+  const startTimes = times.map(t => t.start);
+  const endTimes = times.map(t => t.end);
+  const earliest = Math.min(...startTimes);
+  const latest = Math.max(...endTimes);
+  const uniqueDays = new Set(fBlocks.map(block => block.day)).size;
+  
+
+  let totalGaps = 0;
+  const byDay = {};
+  
+  fBlocks.forEach(block => {
+    if (!byDay[block.day]) byDay[block.day] = [];
+    byDay[block.day].push({
+      start: timeToMinutes(block.start),
+      end: timeToMinutes(block.end)
+    });
+  });
+  
+  Object.values(byDay).forEach(dayBlocks => {
+    dayBlocks.sort((a, b) => a.start - b.start);
+    for (let i = 1; i < dayBlocks.length; i++) {
+      const gap = dayBlocks[i].start - dayBlocks[i-1].end;
+      if (gap > 0) totalGaps += gap;
+    }
+  });
+  
+  return {
+    earliest: minutesToTime(earliest),
+    latest: minutesToTime(latest),
+    gaps: totalGaps,
+    days: uniqueDays
+  };
+}
+
+function timeToMinutes(timeStr) {
+  if (!timeStr || timeStr === 'TBA') return -1;
+  
+  const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (!match) return -1;
+  
+  let hours = parseInt(match[1]);
+  const minutes = parseInt(match[2]);
+  const ampm = match[3].toUpperCase();
+  
+  if (ampm === 'PM' && hours !== 12) hours += 12;
+  if (ampm === 'AM' && hours === 12) hours = 0;
+  
+  return hours * 60 + minutes;
+}
+
+function minutesToTime(minutes) {
+  if (minutes === -1) return 'TBA';
+  
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  
+  return `${displayHours}:${mins.toString().padStart(2, '0')} ${ampm}`;
+}
 
 module.exports = router;
