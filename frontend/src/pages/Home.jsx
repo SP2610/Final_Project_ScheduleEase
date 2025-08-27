@@ -1,7 +1,38 @@
 // frontend/src/pages/Home.jsx
-import { NavLink } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 
 export default function Home() {
+  const navigate = useNavigate();
+  const [previewBlocks, setPreviewBlocks] = useState([]);
+
+  // Load the latest saved plan (what shows up on the Plans page)
+  const loadLatestPlan = () => {
+    try {
+      const plans = JSON.parse(localStorage.getItem("plans") || "[]");
+      if (plans.length > 0) {
+        // plans are saved newest-first in your Results.jsx "Save Schedule"
+        setPreviewBlocks(plans[0].blocks || []);
+      } else {
+        setPreviewBlocks([]);
+      }
+    } catch {
+      setPreviewBlocks([]);
+    }
+  };
+
+  useEffect(() => {
+    loadLatestPlan();
+    // If any other tab updates localStorage, reflect it
+    const onStorage = (e) => {
+      if (e.key === "plans") loadLatestPlan();
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  const hasPreview = previewBlocks && previewBlocks.length > 0;
+
   return (
     <div className="container stack">
       <section className="card hero cardlike fade-up">
@@ -38,12 +69,13 @@ export default function Home() {
               >
                 View results
               </NavLink>
-              <a
-                href="#preview"
+              <button
                 className="btn btn-ghost btn-lg"
+                onClick={() => navigate("/app/results")}
+                title="Generate / view schedules from your current selection"
               >
-                Preview
-              </a>
+                Preview (from selection)
+              </button>
             </div>
           </div>
 
@@ -54,9 +86,25 @@ export default function Home() {
             <div
               id="preview"
               className="timetablePreview float"
-              style={{ width: "100%" }}
+              style={{
+                width: "100%",
+                position: "relative",
+                cursor: hasPreview ? "pointer" : "default",
+              }}
+              onClick={() => {
+                // If we have something to show, go to Plans (most relevant).
+                // Otherwise go to Results so the user can create the first plan.
+                navigate(hasPreview ? "/app/plans" : "/app/results");
+              }}
             >
-              Timetable preview
+              {!hasPreview ? (
+                <EmptyPreview onRefresh={loadLatestPlan} />
+              ) : (
+                <>
+                  <MiniTimetable blocks={previewBlocks} />
+                  <OverlayControls onRefresh={loadLatestPlan} />
+                </>
+              )}
               <div className="pulse-ring" />
             </div>
           </div>
@@ -64,4 +112,164 @@ export default function Home() {
       </section>
     </div>
   );
+}
+
+/* ---------- Small helpers rendered inside the preview card --------------- */
+
+function EmptyPreview({ onRefresh }) {
+  return (
+    <div style={{ textAlign: "center", padding: 14 }}>
+      <div
+        style={{
+          fontWeight: 800,
+          letterSpacing: 0.3,
+          marginBottom: 8,
+          opacity: 0.9,
+        }}
+      >
+        Timetable preview
+      </div>
+      <div
+        className="muted"
+        style={{ fontSize: 13, lineHeight: 1.4 }}
+      >
+        Save a schedule from <strong>Results</strong> (click{" "}
+        <em>Save Schedule</em>) and it will appear here.
+      </div>
+      <button
+        className="btn"
+        style={{ marginTop: 10, padding: "8px 10px" }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onRefresh();
+        }}
+      >
+        Refresh
+      </button>
+    </div>
+  );
+}
+
+function OverlayControls({ onRefresh }) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: 8,
+        right: 8,
+        display: "flex",
+        gap: 6,
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        className="btn btn-ghost"
+        style={{ padding: "6px 10px", fontSize: 12, borderRadius: 8 }}
+        onClick={onRefresh}
+        title="Reload latest saved plan"
+      >
+        Refresh
+      </button>
+    </div>
+  );
+}
+
+/**
+ * MiniTimetable – compact week preview for the hero card.
+ * Expects blocks like in your Results: { day:'Mon', start:'1:00 PM', end:'1:50 PM', title, crn }
+ */
+function MiniTimetable({ blocks }) {
+  const order = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+  const byDay = useMemo(() => {
+    const map = Object.fromEntries(order.map((d) => [d, []]));
+    (blocks || []).forEach((b) => {
+      const k = b.day || "";
+      if (map[k]) map[k].push(b);
+    });
+    // Keep a stable order per day by start time if present
+    order.forEach((d) => {
+      map[d].sort((a, b) => (a.start || "").localeCompare(b.start || ""));
+    });
+    return map;
+  }, [blocks]);
+
+  return (
+    <div
+      className="timetable"
+      style={{
+        // Fit nicely inside the preview card
+        gridTemplateColumns: "repeat(5, 1fr)",
+        gap: 10,
+        padding: 12,
+        width: "100%",
+      }}
+    >
+      {order.map((day) => (
+        <div
+          key={day}
+          className="day"
+          style={{ minHeight: 0 }}
+        >
+          <h5 style={{ margin: "0 0 6px", fontSize: 12, opacity: 0.9 }}>
+            {day}
+          </h5>
+          {byDay[day].length === 0 ? (
+            <div
+              className="muted"
+              style={{ fontSize: 12, opacity: 0.7 }}
+            >
+              —
+            </div>
+          ) : (
+            byDay[day].map((b, i) => (
+              <div
+                key={`${day}-${i}`}
+                className="block"
+                style={{
+                  marginBottom: 6,
+                  padding: 6,
+                  fontSize: 11,
+                  lineHeight: 1.25,
+                  background: "rgba(160,168,255,0.14)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                }}
+                title={`${b.title} • ${b.start}–${b.end}`}
+              >
+                <div
+                  style={{
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    fontWeight: 700,
+                    marginBottom: 2,
+                  }}
+                >
+                  {shortenTitle(b.title)}
+                </div>
+                <div
+                  className="muted"
+                  style={{ fontSize: 10 }}
+                >
+                  {b.start}–{b.end}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function shortenTitle(t = "") {
+  // Keep a concise label (e.g., "CS010 LEC" out of "CS010 LEC • Room...")
+  // First, try "COURSECODE ..." prefix
+  const m = t.match(/^([A-Z]+\d+[A-Z]*)/);
+  if (m) {
+    const code = m[1];
+    // Try to grab a short kind like LEC/LAB/DIS
+    const kind = (t.match(/\b(LEC|LAB|DIS)\b/i) || [])[1] || "";
+    return kind ? `${code} ${kind.toUpperCase()}` : code;
+  }
+  return t.length > 22 ? t.slice(0, 21) + "…" : t;
 }
