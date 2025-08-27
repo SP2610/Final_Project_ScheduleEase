@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const { spawn } = require('child_process');
 const path = require('path');
+const os = require('os');
+const fs = require('fs');
 
 const courses = [
   { subject: "AHS", code: "007", title: "Art History" },
@@ -1814,6 +1816,58 @@ const courses = [
   { "subject": "WRIT", "code": "302", "title": "University Writing Program" }
 ];
 
+function getPythonPath() {
+  if (process.env.PYTHON_PATH) {
+    return process.env.PYTHON_PATH;
+  }
+  
+  const platform = os.platform();
+  
+  if (platform === 'win32') {
+
+    const windowsPaths = [
+      'C:\\Users\\A\\AppData\\Local\\Programs\\Python\\Python313\\python.exe',
+      'C:\\Python313\\python.exe',
+      'C:\\Python312\\python.exe',
+      'C:\\Python311\\python.exe',
+      process.env.LOCALAPPDATA + '\\Programs\\Python\\Python313\\python.exe',
+      'python',
+      'python3'
+    ];
+    
+    for (const path of windowsPaths) {
+      try {
+        if (fs.existsSync(path)) {
+          return path;
+        }
+      } catch (error) {
+      }
+    }
+    return 'python';
+  } else {
+    const unixPaths = [
+      '/Library/Frameworks/Python.framework/Versions/3.13/bin/python3', 
+      '/Library/Frameworks/Python.framework/Versions/3.12/bin/python3',
+      '/Library/Frameworks/Python.framework/Versions/3.11/bin/python3',
+      '/usr/bin/python3',
+      '/usr/local/bin/python3',
+      '/opt/homebrew/bin/python3', 
+      'python3',
+      'python'
+    ];
+    
+    for (const path of unixPaths) {
+      try {
+        if (fs.existsSync(path)) {
+          return path;
+        }
+      } catch (error) {
+      }
+    }
+    return 'python3';
+  }
+}
+
 function createBlock(section, courseCode, type) {
   const blocks = [];
   const schedule = section.schedule || 'TBA';
@@ -1950,10 +2004,11 @@ router.post("/generate-schedules", async (req, res) => {
   console.log('Generating schedules for courses:', courseCodes);
   
   try {
-
     const pythonScriptPath = path.join(__dirname, '../../scripts/course_scraper.py');
     
-    const pythonPath = 'C:\\Users\\A\\AppData\\Local\\Programs\\Python\\Python313\\python.exe';
+    const pythonPath = getPythonPath();
+    
+    console.log('Using Python path:', pythonPath);
     
     const pythonProcess = spawn(pythonPath, [pythonScriptPath, 'generate', ...courseCodes], {
       stdio: ['pipe', 'pipe', 'pipe']
@@ -1980,7 +2035,6 @@ router.post("/generate-schedules", async (req, res) => {
       }
       
       try {
-
         const results = JSON.parse(stdout);
         
         if (!results.success) {
@@ -1990,13 +2044,11 @@ router.post("/generate-schedules", async (req, res) => {
           });
         }
         
-
         const schedules = results.valid_schedules.map((schedule, index) => {
           const blocks = [];
           const crns = [];
           
           schedule.courses.forEach(course => {
-
             if (course.lecture) {
               const lectureBlocks = createBlock(course.lecture, course.course_code, 'LEC');
               blocks.push(...lectureBlocks);
@@ -2040,7 +2092,6 @@ router.post("/generate-schedules", async (req, res) => {
       }
     });
     
-
     setTimeout(() => {
       pythonProcess.kill('SIGTERM');
       if (!res.headersSent) {
