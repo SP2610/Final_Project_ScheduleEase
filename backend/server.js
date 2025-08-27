@@ -5,14 +5,14 @@ const cors = require("cors");
 const morgan = require("morgan");
 const { MongoClient } = require("mongodb");
 
-// auth deps
+// Auth deps
 const session = require("express-session");
 const passport = require("passport");
 
 const app = express();
 
 /* ----------------------------------------
-   Core middleware (must run BEFORE routes)
+   Core middleware (before routes)
 ----------------------------------------- */
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 
@@ -37,7 +37,7 @@ app.use(
     cookie: {
       httpOnly: true,
       sameSite: "lax",
-      secure: false, // true only behind HTTPS in prod
+      secure: false, // set true behind HTTPS in prod
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })
@@ -45,7 +45,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Auth routes (Google OAuth)
+// Google OAuth routes
 app.use("/api/auth", require("./auth/google"));
 
 /* ----------------------------------------
@@ -69,13 +69,34 @@ const client = new MongoClient(MONGO_URI, { serverSelectionTimeoutMS: 5000 });
 async function startMongo() {
   await client.connect();
   const db = client.db(DB_NAME);
+
   app.locals.db = db;
   app.locals.collections = {
     courses: db.collection("courses"),
     sections: db.collection("sections"),
     plans: db.collection("plans"),
     professors: db.collection("professors"),
+    reviews: db.collection("reviews"), //  add reviews collection
   };
+
+  // Helpful indexes for reviews
+  try {
+    await app.locals.collections.reviews.createIndex({
+      professorNorm: 1,
+      createdAt: -1,
+    });
+    await app.locals.collections.reviews.createIndex({
+      professorNormNoComma: 1,
+      createdAt: -1,
+    });
+    await app.locals.collections.reviews.createIndex({
+      userId: 1,
+      createdAt: -1,
+    });
+  } catch (e) {
+    console.warn("Reviews index creation warning:", e?.message);
+  }
+
   console.log(`✅ MongoDB connected • DB: ${DB_NAME}`);
 }
 startMongo().catch((err) => {
@@ -83,6 +104,7 @@ startMongo().catch((err) => {
   process.exit(1);
 });
 
+// DB health
 app.get("/api/db/health", async (_req, res) => {
   try {
     await app.locals.db.command({ ping: 1 });
@@ -102,15 +124,12 @@ app.use((req, _res, next) => {
 });
 
 /* ----------------------------------------
-   Your existing routers
+   Routers (mount AFTER auth + db attach)
 ----------------------------------------- */
+app.use("/api/reviews", require("./routes/reviews")); // ⭐ new
 app.use("/api/courses", require("./routes/courses"));
 app.use("/api/schedules", require("./routes/schedules"));
-
-/* ----------------------------------------
-   Google Calendar router (AFTER cors+session+passport)
------------------------------------------ */
-app.use("/api/calendar", require("./routes/calendar"));
+app.use("/api/calendar", require("./routes/calendar")); // uses req.user
 
 /* ----------------------------------------
    Frontend auth helpers

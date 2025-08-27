@@ -5,15 +5,25 @@ import { useAuth } from "../auth/AuthContext";
 
 export default function Header() {
   const { user, logout } = useAuth();
-  const [open, setOpen] = useState(false);
   const nav = useNavigate();
-  const wrapRef = useRef(null);
 
-  // close dropdown on outside click
+  // dropdown state
+  const [userOpen, setUserOpen] = useState(false);
+  const [reviewsOpen, setReviewsOpen] = useState(false);
+
+  // refs for outside-click detection
+  const userRef = useRef(null);
+  const reviewsRef = useRef(null);
+
+  // close dropdowns on outside click
   useEffect(() => {
     function onDoc(e) {
-      if (!wrapRef.current) return;
-      if (!wrapRef.current.contains(e.target)) setOpen(false);
+      if (userRef.current && !userRef.current.contains(e.target)) {
+        setUserOpen(false);
+      }
+      if (reviewsRef.current && !reviewsRef.current.contains(e.target)) {
+        setReviewsOpen(false);
+      }
     }
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
@@ -22,7 +32,10 @@ export default function Header() {
   // close on Escape
   useEffect(() => {
     function onKey(e) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setUserOpen(false);
+        setReviewsOpen(false);
+      }
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -64,18 +77,65 @@ export default function Header() {
             Results
           </NavLink>
 
+          {/* Reviews dropdown */}
+          <div
+            ref={reviewsRef}
+            style={{ position: "relative" }}
+          >
+            <button
+              className="btn"
+              aria-haspopup="menu"
+              aria-expanded={reviewsOpen}
+              onClick={() => {
+                setReviewsOpen((v) => !v);
+                setUserOpen(false);
+              }}
+            >
+              Reviews ▾
+            </button>
+            {reviewsOpen && (
+              <div
+                className="menu"
+                role="menu"
+                style={{ left: 0, right: "auto" }}
+              >
+                <button
+                  className="menu-item"
+                  onClick={() => {
+                    setReviewsOpen(false);
+                    nav("/app/reviews/write");
+                  }}
+                >
+                  Write a Review
+                </button>
+                <button
+                  className="menu-item"
+                  onClick={() => {
+                    setReviewsOpen(false);
+                    nav("/app/reviews/read");
+                  }}
+                >
+                  Read Reviews
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* Right side: user chip with dropdown */}
           {user && user !== false && (
             <div
-              ref={wrapRef}
+              ref={userRef}
               style={{ marginLeft: 12, position: "relative" }}
             >
               <button
                 className="userchip"
-                onClick={() => setOpen((v) => !v)}
+                onClick={() => {
+                  setUserOpen((v) => !v);
+                  setReviewsOpen(false);
+                }}
                 title={user.email}
                 aria-haspopup="menu"
-                aria-expanded={open}
+                aria-expanded={userOpen}
               >
                 <img
                   src={user.avatarUrl}
@@ -109,7 +169,7 @@ export default function Header() {
                 </svg>
               </button>
 
-              {open && (
+              {userOpen && (
                 <div
                   className="menu"
                   role="menu"
@@ -117,7 +177,7 @@ export default function Header() {
                   <button
                     className="menu-item"
                     onClick={() => {
-                      setOpen(false);
+                      setUserOpen(false);
                       nav("/app/profile");
                     }}
                   >
@@ -126,7 +186,7 @@ export default function Header() {
                   <button
                     className="menu-item danger"
                     onClick={() => {
-                      setOpen(false);
+                      setUserOpen(false);
                       logout();
                     }}
                   >
