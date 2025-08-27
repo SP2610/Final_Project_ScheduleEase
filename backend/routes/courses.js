@@ -3,6 +3,7 @@ const router = express.Router();
 const { spawn } = require("child_process");
 const path = require("path");
 
+
 const courses = [
   { subject: "AHS", code: "007", title: "Art History" },
   { subject: "AHS", code: "008", title: "Art History" },
@@ -1814,6 +1815,58 @@ const courses = [
   { subject: "WRIT", code: "302", title: "University Writing Program" },
 ];
 
+function getPythonPath() {
+  if (process.env.PYTHON_PATH) {
+    return process.env.PYTHON_PATH;
+  }
+  
+  const platform = os.platform();
+  
+  if (platform === 'win32') {
+
+    const windowsPaths = [
+      'C:\\Users\\A\\AppData\\Local\\Programs\\Python\\Python313\\python.exe',
+      'C:\\Python313\\python.exe',
+      'C:\\Python312\\python.exe',
+      'C:\\Python311\\python.exe',
+      process.env.LOCALAPPDATA + '\\Programs\\Python\\Python313\\python.exe',
+      'python',
+      'python3'
+    ];
+    
+    for (const path of windowsPaths) {
+      try {
+        if (fs.existsSync(path)) {
+          return path;
+        }
+      } catch (error) {
+      }
+    }
+    return 'python';
+  } else {
+    const unixPaths = [
+      '/Library/Frameworks/Python.framework/Versions/3.13/bin/python3', 
+      '/Library/Frameworks/Python.framework/Versions/3.12/bin/python3',
+      '/Library/Frameworks/Python.framework/Versions/3.11/bin/python3',
+      '/usr/bin/python3',
+      '/usr/local/bin/python3',
+      '/opt/homebrew/bin/python3', 
+      'python3',
+      'python'
+    ];
+    
+    for (const path of unixPaths) {
+      try {
+        if (fs.existsSync(path)) {
+          return path;
+        }
+      } catch (error) {
+      }
+    }
+    return 'python3';
+  }
+}
+
 function createBlock(section, courseCode, type) {
   const blocks = [];
   const schedule = section.schedule || "TBA";
@@ -1958,7 +2011,7 @@ router.post("/generate-schedules", async (req, res) => {
       "../../scripts/course_scraper.py"
     );
 
-    // instead of hardcoding pythonPath
+    
     function getPythonExec() {
       if (process.env.PYTHON_PATH && process.env.PYTHON_PATH.trim()) {
         return process.env.PYTHON_PATH.trim();
@@ -1980,6 +2033,7 @@ router.post("/generate-schedules", async (req, res) => {
     let stderr = "";
 
     pythonProcess.stdout.on("data", (data) => {
+
       stdout += data.toString();
     });
 
@@ -1996,6 +2050,7 @@ router.post("/generate-schedules", async (req, res) => {
         });
       }
 
+
       try {
         const results = JSON.parse(stdout);
 
@@ -2006,11 +2061,13 @@ router.post("/generate-schedules", async (req, res) => {
           });
         }
 
+
         const schedules = results.valid_schedules.map((schedule, index) => {
           const blocks = [];
           const crns = [];
 
           schedule.courses.forEach((course) => {
+
             if (course.lecture) {
               const lectureBlocks = createBlock(
                 course.lecture,
