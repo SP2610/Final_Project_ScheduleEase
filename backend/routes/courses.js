@@ -1,9 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const { spawn } = require('child_process');
-const path = require('path');
-const os = require('os');
-const fs = require('fs');
+const { spawn } = require("child_process");
+const path = require("path");
+
 
 const courses = [
   { subject: "AHS", code: "007", title: "Art History" },
@@ -1473,347 +1472,347 @@ const courses = [
   { subject: "PHYS", code: "002A", title: "Physics" },
   { subject: "PHYS", code: "002B", title: "Physics" },
   { subject: "PHYS", code: "010", title: "Physics" },
-  { "subject": "PHYS", "code": "02LA", "title": "Physics" },
-  { "subject": "PHYS", "code": "02LB", "title": "Physics" },
-  { "subject": "PHYS", "code": "037", "title": "Physics" },
-  { "subject": "PHYS", "code": "039", "title": "Physics" },
-  { "subject": "PHYS", "code": "040A", "title": "Physics" },
-  { "subject": "PHYS", "code": "040C", "title": "Physics" },
-  { "subject": "PHYS", "code": "041A", "title": "Physics" },
-  { "subject": "PHYS", "code": "097", "title": "Physics" },
-  { "subject": "PHYS", "code": "111", "title": "Physics" },
-  { "subject": "PHYS", "code": "130A", "title": "Physics" },
-  { "subject": "PHYS", "code": "135A", "title": "Physics" },
-  { "subject": "PHYS", "code": "139L", "title": "Physics" },
-  { "subject": "PHYS", "code": "140L", "title": "Physics" },
-  { "subject": "PHYS", "code": "142W", "title": "Physics" },
-  { "subject": "PHYS", "code": "150A", "title": "Physics" },
-  { "subject": "PHYS", "code": "156A", "title": "Physics" },
-  { "subject": "PHYS", "code": "190", "title": "Physics" },
-  { "subject": "PHYS", "code": "195A", "title": "Physics" },
-  { "subject": "PHYS", "code": "195B", "title": "Physics" },
-  { "subject": "PHYS", "code": "195C", "title": "Physics" },
-  { "subject": "PHYS", "code": "197", "title": "Physics" },
-  { "subject": "PHYS", "code": "198I", "title": "Physics" },
-  { "subject": "PHYS", "code": "203", "title": "Physics" },
-  { "subject": "PHYS", "code": "205", "title": "Physics" },
-  { "subject": "PHYS", "code": "206", "title": "Physics" },
-  { "subject": "PHYS", "code": "210A", "title": "Physics" },
-  { "subject": "PHYS", "code": "211A", "title": "Physics" },
-  { "subject": "PHYS", "code": "213", "title": "Physics" },
-  { "subject": "PHYS", "code": "221A", "title": "Physics" },
-  { "subject": "PHYS", "code": "225A", "title": "Physics" },
-  { "subject": "PHYS", "code": "231", "title": "Physics" },
-  { "subject": "PHYS", "code": "236", "title": "Physics" },
-  { "subject": "PHYS", "code": "240A", "title": "Physics" },
-  { "subject": "PHYS", "code": "247", "title": "Physics" },
-  { "subject": "PHYS", "code": "250", "title": "Physics" },
-  { "subject": "PHYS", "code": "258", "title": "Physics" },
-  { "subject": "PHYS", "code": "289", "title": "Physics" },
-  { "subject": "PHYS", "code": "290", "title": "Physics" },
-  { "subject": "PHYS", "code": "291", "title": "Physics" },
-  { "subject": "PHYS", "code": "296", "title": "Physics" },
-  { "subject": "PHYS", "code": "297", "title": "Physics" },
-  { "subject": "PHYS", "code": "299", "title": "Physics" },
-  { "subject": "PLPA", "code": "010", "title": "Plant Pathology" },
-  { "subject": "PLPA", "code": "120", "title": "Plant Pathology" },
-  { "subject": "PLPA", "code": "123", "title": "Plant Pathology" },
-  { "subject": "PLPA", "code": "125", "title": "Plant Pathology" },
-  { "subject": "PLPA", "code": "134", "title": "Plant Pathology" },
-  { "subject": "PLPA", "code": "134L", "title": "Plant Pathology" },
-  { "subject": "PLPA", "code": "190", "title": "Plant Pathology" },
-  { "subject": "PLPA", "code": "197", "title": "Plant Pathology" },
-  { "subject": "PLPA", "code": "210", "title": "Plant Pathology" },
-  { "subject": "PLPA", "code": "226", "title": "Plant Pathology" },
-  { "subject": "PLPA", "code": "234", "title": "Plant Pathology" },
-  { "subject": "PLPA", "code": "240", "title": "Plant Pathology" },
-  { "subject": "PLPA", "code": "250", "title": "Plant Pathology" },
-  { "subject": "PLPA", "code": "261", "title": "Plant Pathology" },
-  { "subject": "PLPA", "code": "290", "title": "Plant Pathology" },
-  { "subject": "PLPA", "code": "291", "title": "Plant Pathology" },
-  { "subject": "PLPA", "code": "297", "title": "Plant Pathology" },
-  { "subject": "PLPA", "code": "299", "title": "Plant Pathology" },
-  { "subject": "POSC", "code": "005W", "title": "Political Science" },
-  { "subject": "POSC", "code": "007", "title": "Political Science" },
-  { "subject": "POSC", "code": "010", "title": "Political Science" },
-  { "subject": "POSC", "code": "015", "title": "Political Science" },
-  { "subject": "POSC", "code": "020", "title": "Political Science" },
-  { "subject": "POSC", "code": "045", "title": "Political Science" },
-  { "subject": "POSC", "code": "101", "title": "Political Science" },
-  { "subject": "POSC", "code": "108", "title": "Political Science" },
-  { "subject": "POSC", "code": "110", "title": "Political Science" },
-  { "subject": "POSC", "code": "114L", "title": "Political Science" },
-  { "subject": "POSC", "code": "117S", "title": "Political Science" },
-  { "subject": "POSC", "code": "124S", "title": "Political Science" },
-  { "subject": "POSC", "code": "125", "title": "Political Science" },
-  { "subject": "POSC", "code": "126S", "title": "Political Science" },
-  { "subject": "POSC", "code": "138S", "title": "Political Science" },
-  { "subject": "POSC", "code": "139S", "title": "Political Science" },
-  { "subject": "POSC", "code": "143S", "title": "Political Science" },
-  { "subject": "POSC", "code": "153", "title": "Political Science" },
-  { "subject": "POSC", "code": "155S", "title": "Political Science" },
-  { "subject": "POSC", "code": "161", "title": "Political Science" },
-  { "subject": "POSC", "code": "162S", "title": "Political Science" },
-  { "subject": "POSC", "code": "163S", "title": "Political Science" },
-  { "subject": "POSC", "code": "164S", "title": "Political Science" },
-  { "subject": "POSC", "code": "165S", "title": "Political Science" },
-  { "subject": "POSC", "code": "168", "title": "Political Science" },
-  { "subject": "POSC", "code": "170", "title": "Political Science" },
-  { "subject": "POSC", "code": "171S", "title": "Political Science" },
-  { "subject": "POSC", "code": "178S", "title": "Political Science" },
-  { "subject": "POSC", "code": "182E", "title": "Political Science" },
-  { "subject": "POSC", "code": "186", "title": "Political Science" },
-  { "subject": "POSC", "code": "190", "title": "Political Science" },
-  { "subject": "POSC", "code": "196B", "title": "Political Science" },
-  { "subject": "POSC", "code": "197", "title": "Political Science" },
-  { "subject": "POSC", "code": "198G", "title": "Political Science" },
-  { "subject": "POSC", "code": "198I", "title": "Political Science" },
-  { "subject": "POSC", "code": "199", "title": "Political Science" },
-  { "subject": "POSC", "code": "201", "title": "Political Science" },
-  { "subject": "POSC", "code": "202A", "title": "Political Science" },
-  { "subject": "POSC", "code": "207", "title": "Political Science" },
-  { "subject": "POSC", "code": "230", "title": "Political Science" },
-  { "subject": "POSC", "code": "254", "title": "Political Science" },
-  { "subject": "POSC", "code": "264", "title": "Political Science" },
-  { "subject": "POSC", "code": "267", "title": "Political Science" },
-  { "subject": "POSC", "code": "271", "title": "Political Science" },
-  { "subject": "POSC", "code": "272", "title": "Political Science" },
-  { "subject": "POSC", "code": "285", "title": "Political Science" },
-  { "subject": "POSC", "code": "290", "title": "Political Science" },
-  { "subject": "POSC", "code": "291", "title": "Political Science" },
-  { "subject": "POSC", "code": "292", "title": "Political Science" },
-  { "subject": "POSC", "code": "293", "title": "Political Science" },
-  { "subject": "POSC", "code": "297", "title": "Political Science" },
-  { "subject": "POSC", "code": "299", "title": "Political Science" },
-  { "subject": "POSC", "code": "301", "title": "Political Science" },
-  { "subject": "POSC", "code": "302", "title": "Political Science" },
-  { "subject": "PSYC", "code": "001", "title": "Psychology" },
-  { "subject": "PSYC", "code": "002", "title": "Psychology" },
-  { "subject": "PSYC", "code": "011", "title": "Psychology" },
-  { "subject": "PSYC", "code": "012", "title": "Psychology" },
-  { "subject": "PSYC", "code": "110", "title": "Psychology" },
-  { "subject": "PSYC", "code": "113", "title": "Psychology" },
-  { "subject": "PSYC", "code": "117", "title": "Psychology" },
-  { "subject": "PSYC", "code": "120L", "title": "Psychology" },
-  { "subject": "PSYC", "code": "121", "title": "Psychology" },
-  { "subject": "PSYC", "code": "124", "title": "Psychology" },
-  { "subject": "PSYC", "code": "125", "title": "Psychology" },
-  { "subject": "PSYC", "code": "126", "title": "Psychology" },
-  { "subject": "PSYC", "code": "134", "title": "Psychology" },
-  { "subject": "PSYC", "code": "136", "title": "Psychology" },
-  { "subject": "PSYC", "code": "139", "title": "Psychology" },
-  { "subject": "PSYC", "code": "140", "title": "Psychology" },
-  { "subject": "PSYC", "code": "142", "title": "Psychology" },
-  { "subject": "PSYC", "code": "150", "title": "Psychology" },
-  { "subject": "PSYC", "code": "160", "title": "Psychology" },
-  { "subject": "PSYC", "code": "169", "title": "Psychology" },
-  { "subject": "PSYC", "code": "178", "title": "Psychology" },
-  { "subject": "PSYC", "code": "182E", "title": "Psychology" },
-  { "subject": "PSYC", "code": "182J", "title": "Psychology" },
-  { "subject": "PSYC", "code": "189", "title": "Psychology" },
-  { "subject": "PSYC", "code": "198", "title": "Psychology" },
-  { "subject": "PSYC", "code": "200A", "title": "Psychology" },
-  { "subject": "PSYC", "code": "203A", "title": "Psychology" },
-  { "subject": "PSYC", "code": "207A", "title": "Psychology" },
-  { "subject": "PSYC", "code": "211", "title": "Psychology" },
-  { "subject": "PSYC", "code": "226", "title": "Psychology" },
-  { "subject": "PSYC", "code": "233", "title": "Psychology" },
-  { "subject": "PSYC", "code": "259", "title": "Psychology" },
-  { "subject": "PSYC", "code": "270", "title": "Psychology" },
-  { "subject": "PSYC", "code": "283", "title": "Psychology" },
-  { "subject": "PSYC", "code": "284", "title": "Psychology" },
-  { "subject": "PSYC", "code": "285", "title": "Psychology" },
-  { "subject": "PSYC", "code": "286E", "title": "Psychology" },
-  { "subject": "PSYC", "code": "287", "title": "Psychology" },
-  { "subject": "PSYC", "code": "289", "title": "Psychology" },
-  { "subject": "PSYC", "code": "290", "title": "Psychology" },
-  { "subject": "PSYC", "code": "291", "title": "Psychology" },
-  { "subject": "PSYC", "code": "292", "title": "Psychology" },
-  { "subject": "PSYC", "code": "296", "title": "Psychology" },
-  { "subject": "PSYC", "code": "297", "title": "Psychology" },
-  { "subject": "PSYC", "code": "299", "title": "Psychology" },
-  { "subject": "PSYC", "code": "301", "title": "Psychology" },
-  { "subject": "RLST", "code": "004", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "011", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "011H", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "012", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "013", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "100", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "101", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "111", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "177", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "190", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "193", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "197", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "201", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "220", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "290", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "291", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "292", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "297", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "299", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "302", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "401", "title": "Religious Studies" },
-  { "subject": "RLST", "code": "402", "title": "Religious Studies" },
-  { "subject": "RUSN", "code": "001", "title": "Russian Studies" },
-  { "subject": "RUSN", "code": "004", "title": "Russian Studies" },
-  { "subject": "RUSN", "code": "190", "title": "Russian Studies" },
-  { "subject": "SEAS", "code": "063", "title": "Southeast Asian Studies" },
-  { "subject": "SEAS", "code": "168", "title": "Southeast Asian Studies" },
-  { "subject": "SEAS", "code": "200", "title": "Southeast Asian Studies" },
-  { "subject": "SEAS", "code": "290", "title": "Southeast Asian Studies" },
-  { "subject": "SEAS", "code": "292", "title": "Southeast Asian Studies" },
-  { "subject": "SEAS", "code": "297", "title": "Southeast Asian Studies" },
-  { "subject": "SEAS", "code": "299", "title": "Southeast Asian Studies" },
-  { "subject": "SEHE", "code": "001", "title": "Society, Envmnt, Health Equity" },
-  { "subject": "SEHE", "code": "002", "title": "Society, Envmnt, Health Equity" },
-  { "subject": "SEHE", "code": "105", "title": "Society, Envmnt, Health Equity" },
-  { "subject": "SEHE", "code": "110", "title": "Society, Envmnt, Health Equity" },
-  { "subject": "SEHE", "code": "115", "title": "Society, Envmnt, Health Equity" },
-  { "subject": "SEHE", "code": "116", "title": "Society, Envmnt, Health Equity" },
-  { "subject": "SEHE", "code": "139S", "title": "Society, Envmnt, Health Equity" },
-  { "subject": "SEHE", "code": "143", "title": "Society, Envmnt, Health Equity" },
-  { "subject": "SEHE", "code": "161", "title": "Society, Envmnt, Health Equity" },
-  { "subject": "SEHE", "code": "174", "title": "Society, Envmnt, Health Equity" },
-  { "subject": "SEHE", "code": "189", "title": "Society, Envmnt, Health Equity" },
-  { "subject": "SOC", "code": "001", "title": "Sociology" },
-  { "subject": "SOC", "code": "002G", "title": "Sociology" },
-  { "subject": "SOC", "code": "003", "title": "Sociology" },
-  { "subject": "SOC", "code": "004", "title": "Sociology" },
-  { "subject": "SOC", "code": "005", "title": "Sociology" },
-  { "subject": "SOC", "code": "122", "title": "Sociology" },
-  { "subject": "SOC", "code": "130", "title": "Sociology" },
-  { "subject": "SOC", "code": "133", "title": "Sociology" },
-  { "subject": "SOC", "code": "134", "title": "Sociology" },
-  { "subject": "SOC", "code": "135", "title": "Sociology" },
-  { "subject": "SOC", "code": "140", "title": "Sociology" },
-  { "subject": "SOC", "code": "142", "title": "Sociology" },
-  { "subject": "SOC", "code": "147", "title": "Sociology" },
-  { "subject": "SOC", "code": "151", "title": "Sociology" },
-  { "subject": "SOC", "code": "159", "title": "Sociology" },
-  { "subject": "SOC", "code": "160", "title": "Sociology" },
-  { "subject": "SOC", "code": "161", "title": "Sociology" },
-  { "subject": "SOC", "code": "169", "title": "Sociology" },
-  { "subject": "SOC", "code": "173", "title": "Sociology" },
-  { "subject": "SOC", "code": "177E", "title": "Sociology" },
-  { "subject": "SOC", "code": "184", "title": "Sociology" },
-  { "subject": "SOC", "code": "190", "title": "Sociology" },
-  { "subject": "SOC", "code": "197", "title": "Sociology" },
-  { "subject": "SOC", "code": "198I", "title": "Sociology" },
-  { "subject": "SOC", "code": "290", "title": "Sociology" },
-  { "subject": "SOC", "code": "291", "title": "Sociology" },
-  { "subject": "SOC", "code": "297", "title": "Sociology" },
-  { "subject": "SOC", "code": "299", "title": "Sociology" },
-  { "subject": "SPN", "code": "001", "title": "Spanish" },
-  { "subject": "SPN", "code": "002", "title": "Spanish" },
-  { "subject": "SPN", "code": "003", "title": "Spanish" },
-  { "subject": "SPN", "code": "004", "title": "Spanish" },
-  { "subject": "SPN", "code": "005", "title": "Spanish" },
-  { "subject": "SPN", "code": "101A", "title": "Spanish" },
-  { "subject": "SPN", "code": "101B", "title": "Spanish" },
-  { "subject": "SPN", "code": "104", "title": "Spanish" },
-  { "subject": "SPN", "code": "105", "title": "Spanish" },
-  { "subject": "SPN", "code": "109A", "title": "Spanish" },
-  { "subject": "SPN", "code": "109B", "title": "Spanish" },
-  { "subject": "SPN", "code": "110", "title": "Spanish" },
-  { "subject": "SPN", "code": "120A", "title": "Spanish" },
-  { "subject": "SPN", "code": "122B", "title": "Spanish" },
-  { "subject": "SPN", "code": "130", "title": "Spanish" },
-  { "subject": "SPN", "code": "145", "title": "Spanish" },
-  { "subject": "SPN", "code": "172", "title": "Spanish" },
-  { "subject": "SPN", "code": "175", "title": "Spanish" },
-  { "subject": "SPN", "code": "180B", "title": "Spanish" },
-  { "subject": "SPN", "code": "188", "title": "Spanish" },
-  { "subject": "SPN", "code": "193", "title": "Spanish" },
-  { "subject": "SPN", "code": "203", "title": "Spanish" },
-  { "subject": "SPN", "code": "257", "title": "Spanish" },
-  { "subject": "SPN", "code": "274", "title": "Spanish" },
-  { "subject": "SPN", "code": "290", "title": "Spanish" },
-  { "subject": "SPN", "code": "291", "title": "Spanish" },
-  { "subject": "SPN", "code": "292", "title": "Spanish" },
-  { "subject": "SPN", "code": "299", "title": "Spanish" },
-  { "subject": "SPN", "code": "302", "title": "Spanish" },
-  { "subject": "STAT", "code": "004", "title": "Statistics" },
-  { "subject": "STAT", "code": "008", "title": "Statistics" },
-  { "subject": "STAT", "code": "010", "title": "Statistics" },
-  { "subject": "STAT", "code": "011", "title": "Statistics" },
-  { "subject": "STAT", "code": "104", "title": "Statistics" },
-  { "subject": "STAT", "code": "107", "title": "Statistics" },
-  { "subject": "STAT", "code": "130", "title": "Statistics" },
-  { "subject": "STAT", "code": "155", "title": "Statistics" },
-  { "subject": "STAT", "code": "156A", "title": "Statistics" },
-  { "subject": "STAT", "code": "157", "title": "Statistics" },
-  { "subject": "STAT", "code": "160A", "title": "Statistics" },
-  { "subject": "STAT", "code": "170", "title": "Statistics" },
-  { "subject": "STAT", "code": "190", "title": "Statistics" },
-  { "subject": "STAT", "code": "197", "title": "Statistics" },
-  { "subject": "STAT", "code": "198I", "title": "Statistics" },
-  { "subject": "STAT", "code": "199H", "title": "Statistics" },
-  { "subject": "STAT", "code": "200", "title": "Statistics" },
-  { "subject": "STAT", "code": "201A", "title": "Statistics" },
-  { "subject": "STAT", "code": "202A", "title": "Statistics" },
-  { "subject": "STAT", "code": "205", "title": "Statistics" },
-  { "subject": "STAT", "code": "206", "title": "Statistics" },
-  { "subject": "STAT", "code": "210A", "title": "Statistics" },
-  { "subject": "STAT", "code": "233A", "title": "Statistics" },
-  { "subject": "STAT", "code": "251", "title": "Statistics" },
-  { "subject": "STAT", "code": "255S", "title": "Statistics" },
-  { "subject": "STAT", "code": "290", "title": "Statistics" },
-  { "subject": "STAT", "code": "291", "title": "Statistics" },
-  { "subject": "STAT", "code": "293", "title": "Statistics" },
-  { "subject": "STAT", "code": "297", "title": "Statistics" },
-  { "subject": "STAT", "code": "299", "title": "Statistics" },
-  { "subject": "STAT", "code": "302", "title": "Statistics" },
-  { "subject": "TFDP", "code": "010", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "022", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "024", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "050S", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "066", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "099", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "101", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "109", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "110A", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "111C", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "120A", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "125G", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "130A", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "142", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "145", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "150A", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "153A", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "155", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "156A", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "157", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "164A", "title": "Theater, Film & Digital Prod" },
-  { "subject": "TFDP", "code": "166A", "title": "Theater, Film & Digital Prod" },
-  { "subject": "UGRD", "code": "040", "title": "Div of Undergraduate Education" },
-  { "subject": "URST", "code": "014", "title": "Urban Studies" },
-  { "subject": "URST", "code": "069", "title": "Urban Studies" },
-  { "subject": "VNM", "code": "001", "title": "Vietnamese" },
-  { "subject": "VNM", "code": "004", "title": "Vietnamese" },
-  { "subject": "WRIT", "code": "001", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "001L", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "003", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "003L", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "005", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "005L", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "007", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "007L", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "009", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "009L", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "010", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "010S", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "020", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "030", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "040E", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "040G", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "040P", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "040Q", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "040S", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "040X", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "040Y", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "301", "title": "University Writing Program" },
-  { "subject": "WRIT", "code": "302", "title": "University Writing Program" }
+  { subject: "PHYS", code: "02LA", title: "Physics" },
+  { subject: "PHYS", code: "02LB", title: "Physics" },
+  { subject: "PHYS", code: "037", title: "Physics" },
+  { subject: "PHYS", code: "039", title: "Physics" },
+  { subject: "PHYS", code: "040A", title: "Physics" },
+  { subject: "PHYS", code: "040C", title: "Physics" },
+  { subject: "PHYS", code: "041A", title: "Physics" },
+  { subject: "PHYS", code: "097", title: "Physics" },
+  { subject: "PHYS", code: "111", title: "Physics" },
+  { subject: "PHYS", code: "130A", title: "Physics" },
+  { subject: "PHYS", code: "135A", title: "Physics" },
+  { subject: "PHYS", code: "139L", title: "Physics" },
+  { subject: "PHYS", code: "140L", title: "Physics" },
+  { subject: "PHYS", code: "142W", title: "Physics" },
+  { subject: "PHYS", code: "150A", title: "Physics" },
+  { subject: "PHYS", code: "156A", title: "Physics" },
+  { subject: "PHYS", code: "190", title: "Physics" },
+  { subject: "PHYS", code: "195A", title: "Physics" },
+  { subject: "PHYS", code: "195B", title: "Physics" },
+  { subject: "PHYS", code: "195C", title: "Physics" },
+  { subject: "PHYS", code: "197", title: "Physics" },
+  { subject: "PHYS", code: "198I", title: "Physics" },
+  { subject: "PHYS", code: "203", title: "Physics" },
+  { subject: "PHYS", code: "205", title: "Physics" },
+  { subject: "PHYS", code: "206", title: "Physics" },
+  { subject: "PHYS", code: "210A", title: "Physics" },
+  { subject: "PHYS", code: "211A", title: "Physics" },
+  { subject: "PHYS", code: "213", title: "Physics" },
+  { subject: "PHYS", code: "221A", title: "Physics" },
+  { subject: "PHYS", code: "225A", title: "Physics" },
+  { subject: "PHYS", code: "231", title: "Physics" },
+  { subject: "PHYS", code: "236", title: "Physics" },
+  { subject: "PHYS", code: "240A", title: "Physics" },
+  { subject: "PHYS", code: "247", title: "Physics" },
+  { subject: "PHYS", code: "250", title: "Physics" },
+  { subject: "PHYS", code: "258", title: "Physics" },
+  { subject: "PHYS", code: "289", title: "Physics" },
+  { subject: "PHYS", code: "290", title: "Physics" },
+  { subject: "PHYS", code: "291", title: "Physics" },
+  { subject: "PHYS", code: "296", title: "Physics" },
+  { subject: "PHYS", code: "297", title: "Physics" },
+  { subject: "PHYS", code: "299", title: "Physics" },
+  { subject: "PLPA", code: "010", title: "Plant Pathology" },
+  { subject: "PLPA", code: "120", title: "Plant Pathology" },
+  { subject: "PLPA", code: "123", title: "Plant Pathology" },
+  { subject: "PLPA", code: "125", title: "Plant Pathology" },
+  { subject: "PLPA", code: "134", title: "Plant Pathology" },
+  { subject: "PLPA", code: "134L", title: "Plant Pathology" },
+  { subject: "PLPA", code: "190", title: "Plant Pathology" },
+  { subject: "PLPA", code: "197", title: "Plant Pathology" },
+  { subject: "PLPA", code: "210", title: "Plant Pathology" },
+  { subject: "PLPA", code: "226", title: "Plant Pathology" },
+  { subject: "PLPA", code: "234", title: "Plant Pathology" },
+  { subject: "PLPA", code: "240", title: "Plant Pathology" },
+  { subject: "PLPA", code: "250", title: "Plant Pathology" },
+  { subject: "PLPA", code: "261", title: "Plant Pathology" },
+  { subject: "PLPA", code: "290", title: "Plant Pathology" },
+  { subject: "PLPA", code: "291", title: "Plant Pathology" },
+  { subject: "PLPA", code: "297", title: "Plant Pathology" },
+  { subject: "PLPA", code: "299", title: "Plant Pathology" },
+  { subject: "POSC", code: "005W", title: "Political Science" },
+  { subject: "POSC", code: "007", title: "Political Science" },
+  { subject: "POSC", code: "010", title: "Political Science" },
+  { subject: "POSC", code: "015", title: "Political Science" },
+  { subject: "POSC", code: "020", title: "Political Science" },
+  { subject: "POSC", code: "045", title: "Political Science" },
+  { subject: "POSC", code: "101", title: "Political Science" },
+  { subject: "POSC", code: "108", title: "Political Science" },
+  { subject: "POSC", code: "110", title: "Political Science" },
+  { subject: "POSC", code: "114L", title: "Political Science" },
+  { subject: "POSC", code: "117S", title: "Political Science" },
+  { subject: "POSC", code: "124S", title: "Political Science" },
+  { subject: "POSC", code: "125", title: "Political Science" },
+  { subject: "POSC", code: "126S", title: "Political Science" },
+  { subject: "POSC", code: "138S", title: "Political Science" },
+  { subject: "POSC", code: "139S", title: "Political Science" },
+  { subject: "POSC", code: "143S", title: "Political Science" },
+  { subject: "POSC", code: "153", title: "Political Science" },
+  { subject: "POSC", code: "155S", title: "Political Science" },
+  { subject: "POSC", code: "161", title: "Political Science" },
+  { subject: "POSC", code: "162S", title: "Political Science" },
+  { subject: "POSC", code: "163S", title: "Political Science" },
+  { subject: "POSC", code: "164S", title: "Political Science" },
+  { subject: "POSC", code: "165S", title: "Political Science" },
+  { subject: "POSC", code: "168", title: "Political Science" },
+  { subject: "POSC", code: "170", title: "Political Science" },
+  { subject: "POSC", code: "171S", title: "Political Science" },
+  { subject: "POSC", code: "178S", title: "Political Science" },
+  { subject: "POSC", code: "182E", title: "Political Science" },
+  { subject: "POSC", code: "186", title: "Political Science" },
+  { subject: "POSC", code: "190", title: "Political Science" },
+  { subject: "POSC", code: "196B", title: "Political Science" },
+  { subject: "POSC", code: "197", title: "Political Science" },
+  { subject: "POSC", code: "198G", title: "Political Science" },
+  { subject: "POSC", code: "198I", title: "Political Science" },
+  { subject: "POSC", code: "199", title: "Political Science" },
+  { subject: "POSC", code: "201", title: "Political Science" },
+  { subject: "POSC", code: "202A", title: "Political Science" },
+  { subject: "POSC", code: "207", title: "Political Science" },
+  { subject: "POSC", code: "230", title: "Political Science" },
+  { subject: "POSC", code: "254", title: "Political Science" },
+  { subject: "POSC", code: "264", title: "Political Science" },
+  { subject: "POSC", code: "267", title: "Political Science" },
+  { subject: "POSC", code: "271", title: "Political Science" },
+  { subject: "POSC", code: "272", title: "Political Science" },
+  { subject: "POSC", code: "285", title: "Political Science" },
+  { subject: "POSC", code: "290", title: "Political Science" },
+  { subject: "POSC", code: "291", title: "Political Science" },
+  { subject: "POSC", code: "292", title: "Political Science" },
+  { subject: "POSC", code: "293", title: "Political Science" },
+  { subject: "POSC", code: "297", title: "Political Science" },
+  { subject: "POSC", code: "299", title: "Political Science" },
+  { subject: "POSC", code: "301", title: "Political Science" },
+  { subject: "POSC", code: "302", title: "Political Science" },
+  { subject: "PSYC", code: "001", title: "Psychology" },
+  { subject: "PSYC", code: "002", title: "Psychology" },
+  { subject: "PSYC", code: "011", title: "Psychology" },
+  { subject: "PSYC", code: "012", title: "Psychology" },
+  { subject: "PSYC", code: "110", title: "Psychology" },
+  { subject: "PSYC", code: "113", title: "Psychology" },
+  { subject: "PSYC", code: "117", title: "Psychology" },
+  { subject: "PSYC", code: "120L", title: "Psychology" },
+  { subject: "PSYC", code: "121", title: "Psychology" },
+  { subject: "PSYC", code: "124", title: "Psychology" },
+  { subject: "PSYC", code: "125", title: "Psychology" },
+  { subject: "PSYC", code: "126", title: "Psychology" },
+  { subject: "PSYC", code: "134", title: "Psychology" },
+  { subject: "PSYC", code: "136", title: "Psychology" },
+  { subject: "PSYC", code: "139", title: "Psychology" },
+  { subject: "PSYC", code: "140", title: "Psychology" },
+  { subject: "PSYC", code: "142", title: "Psychology" },
+  { subject: "PSYC", code: "150", title: "Psychology" },
+  { subject: "PSYC", code: "160", title: "Psychology" },
+  { subject: "PSYC", code: "169", title: "Psychology" },
+  { subject: "PSYC", code: "178", title: "Psychology" },
+  { subject: "PSYC", code: "182E", title: "Psychology" },
+  { subject: "PSYC", code: "182J", title: "Psychology" },
+  { subject: "PSYC", code: "189", title: "Psychology" },
+  { subject: "PSYC", code: "198", title: "Psychology" },
+  { subject: "PSYC", code: "200A", title: "Psychology" },
+  { subject: "PSYC", code: "203A", title: "Psychology" },
+  { subject: "PSYC", code: "207A", title: "Psychology" },
+  { subject: "PSYC", code: "211", title: "Psychology" },
+  { subject: "PSYC", code: "226", title: "Psychology" },
+  { subject: "PSYC", code: "233", title: "Psychology" },
+  { subject: "PSYC", code: "259", title: "Psychology" },
+  { subject: "PSYC", code: "270", title: "Psychology" },
+  { subject: "PSYC", code: "283", title: "Psychology" },
+  { subject: "PSYC", code: "284", title: "Psychology" },
+  { subject: "PSYC", code: "285", title: "Psychology" },
+  { subject: "PSYC", code: "286E", title: "Psychology" },
+  { subject: "PSYC", code: "287", title: "Psychology" },
+  { subject: "PSYC", code: "289", title: "Psychology" },
+  { subject: "PSYC", code: "290", title: "Psychology" },
+  { subject: "PSYC", code: "291", title: "Psychology" },
+  { subject: "PSYC", code: "292", title: "Psychology" },
+  { subject: "PSYC", code: "296", title: "Psychology" },
+  { subject: "PSYC", code: "297", title: "Psychology" },
+  { subject: "PSYC", code: "299", title: "Psychology" },
+  { subject: "PSYC", code: "301", title: "Psychology" },
+  { subject: "RLST", code: "004", title: "Religious Studies" },
+  { subject: "RLST", code: "011", title: "Religious Studies" },
+  { subject: "RLST", code: "011H", title: "Religious Studies" },
+  { subject: "RLST", code: "012", title: "Religious Studies" },
+  { subject: "RLST", code: "013", title: "Religious Studies" },
+  { subject: "RLST", code: "100", title: "Religious Studies" },
+  { subject: "RLST", code: "101", title: "Religious Studies" },
+  { subject: "RLST", code: "111", title: "Religious Studies" },
+  { subject: "RLST", code: "177", title: "Religious Studies" },
+  { subject: "RLST", code: "190", title: "Religious Studies" },
+  { subject: "RLST", code: "193", title: "Religious Studies" },
+  { subject: "RLST", code: "197", title: "Religious Studies" },
+  { subject: "RLST", code: "201", title: "Religious Studies" },
+  { subject: "RLST", code: "220", title: "Religious Studies" },
+  { subject: "RLST", code: "290", title: "Religious Studies" },
+  { subject: "RLST", code: "291", title: "Religious Studies" },
+  { subject: "RLST", code: "292", title: "Religious Studies" },
+  { subject: "RLST", code: "297", title: "Religious Studies" },
+  { subject: "RLST", code: "299", title: "Religious Studies" },
+  { subject: "RLST", code: "302", title: "Religious Studies" },
+  { subject: "RLST", code: "401", title: "Religious Studies" },
+  { subject: "RLST", code: "402", title: "Religious Studies" },
+  { subject: "RUSN", code: "001", title: "Russian Studies" },
+  { subject: "RUSN", code: "004", title: "Russian Studies" },
+  { subject: "RUSN", code: "190", title: "Russian Studies" },
+  { subject: "SEAS", code: "063", title: "Southeast Asian Studies" },
+  { subject: "SEAS", code: "168", title: "Southeast Asian Studies" },
+  { subject: "SEAS", code: "200", title: "Southeast Asian Studies" },
+  { subject: "SEAS", code: "290", title: "Southeast Asian Studies" },
+  { subject: "SEAS", code: "292", title: "Southeast Asian Studies" },
+  { subject: "SEAS", code: "297", title: "Southeast Asian Studies" },
+  { subject: "SEAS", code: "299", title: "Southeast Asian Studies" },
+  { subject: "SEHE", code: "001", title: "Society, Envmnt, Health Equity" },
+  { subject: "SEHE", code: "002", title: "Society, Envmnt, Health Equity" },
+  { subject: "SEHE", code: "105", title: "Society, Envmnt, Health Equity" },
+  { subject: "SEHE", code: "110", title: "Society, Envmnt, Health Equity" },
+  { subject: "SEHE", code: "115", title: "Society, Envmnt, Health Equity" },
+  { subject: "SEHE", code: "116", title: "Society, Envmnt, Health Equity" },
+  { subject: "SEHE", code: "139S", title: "Society, Envmnt, Health Equity" },
+  { subject: "SEHE", code: "143", title: "Society, Envmnt, Health Equity" },
+  { subject: "SEHE", code: "161", title: "Society, Envmnt, Health Equity" },
+  { subject: "SEHE", code: "174", title: "Society, Envmnt, Health Equity" },
+  { subject: "SEHE", code: "189", title: "Society, Envmnt, Health Equity" },
+  { subject: "SOC", code: "001", title: "Sociology" },
+  { subject: "SOC", code: "002G", title: "Sociology" },
+  { subject: "SOC", code: "003", title: "Sociology" },
+  { subject: "SOC", code: "004", title: "Sociology" },
+  { subject: "SOC", code: "005", title: "Sociology" },
+  { subject: "SOC", code: "122", title: "Sociology" },
+  { subject: "SOC", code: "130", title: "Sociology" },
+  { subject: "SOC", code: "133", title: "Sociology" },
+  { subject: "SOC", code: "134", title: "Sociology" },
+  { subject: "SOC", code: "135", title: "Sociology" },
+  { subject: "SOC", code: "140", title: "Sociology" },
+  { subject: "SOC", code: "142", title: "Sociology" },
+  { subject: "SOC", code: "147", title: "Sociology" },
+  { subject: "SOC", code: "151", title: "Sociology" },
+  { subject: "SOC", code: "159", title: "Sociology" },
+  { subject: "SOC", code: "160", title: "Sociology" },
+  { subject: "SOC", code: "161", title: "Sociology" },
+  { subject: "SOC", code: "169", title: "Sociology" },
+  { subject: "SOC", code: "173", title: "Sociology" },
+  { subject: "SOC", code: "177E", title: "Sociology" },
+  { subject: "SOC", code: "184", title: "Sociology" },
+  { subject: "SOC", code: "190", title: "Sociology" },
+  { subject: "SOC", code: "197", title: "Sociology" },
+  { subject: "SOC", code: "198I", title: "Sociology" },
+  { subject: "SOC", code: "290", title: "Sociology" },
+  { subject: "SOC", code: "291", title: "Sociology" },
+  { subject: "SOC", code: "297", title: "Sociology" },
+  { subject: "SOC", code: "299", title: "Sociology" },
+  { subject: "SPN", code: "001", title: "Spanish" },
+  { subject: "SPN", code: "002", title: "Spanish" },
+  { subject: "SPN", code: "003", title: "Spanish" },
+  { subject: "SPN", code: "004", title: "Spanish" },
+  { subject: "SPN", code: "005", title: "Spanish" },
+  { subject: "SPN", code: "101A", title: "Spanish" },
+  { subject: "SPN", code: "101B", title: "Spanish" },
+  { subject: "SPN", code: "104", title: "Spanish" },
+  { subject: "SPN", code: "105", title: "Spanish" },
+  { subject: "SPN", code: "109A", title: "Spanish" },
+  { subject: "SPN", code: "109B", title: "Spanish" },
+  { subject: "SPN", code: "110", title: "Spanish" },
+  { subject: "SPN", code: "120A", title: "Spanish" },
+  { subject: "SPN", code: "122B", title: "Spanish" },
+  { subject: "SPN", code: "130", title: "Spanish" },
+  { subject: "SPN", code: "145", title: "Spanish" },
+  { subject: "SPN", code: "172", title: "Spanish" },
+  { subject: "SPN", code: "175", title: "Spanish" },
+  { subject: "SPN", code: "180B", title: "Spanish" },
+  { subject: "SPN", code: "188", title: "Spanish" },
+  { subject: "SPN", code: "193", title: "Spanish" },
+  { subject: "SPN", code: "203", title: "Spanish" },
+  { subject: "SPN", code: "257", title: "Spanish" },
+  { subject: "SPN", code: "274", title: "Spanish" },
+  { subject: "SPN", code: "290", title: "Spanish" },
+  { subject: "SPN", code: "291", title: "Spanish" },
+  { subject: "SPN", code: "292", title: "Spanish" },
+  { subject: "SPN", code: "299", title: "Spanish" },
+  { subject: "SPN", code: "302", title: "Spanish" },
+  { subject: "STAT", code: "004", title: "Statistics" },
+  { subject: "STAT", code: "008", title: "Statistics" },
+  { subject: "STAT", code: "010", title: "Statistics" },
+  { subject: "STAT", code: "011", title: "Statistics" },
+  { subject: "STAT", code: "104", title: "Statistics" },
+  { subject: "STAT", code: "107", title: "Statistics" },
+  { subject: "STAT", code: "130", title: "Statistics" },
+  { subject: "STAT", code: "155", title: "Statistics" },
+  { subject: "STAT", code: "156A", title: "Statistics" },
+  { subject: "STAT", code: "157", title: "Statistics" },
+  { subject: "STAT", code: "160A", title: "Statistics" },
+  { subject: "STAT", code: "170", title: "Statistics" },
+  { subject: "STAT", code: "190", title: "Statistics" },
+  { subject: "STAT", code: "197", title: "Statistics" },
+  { subject: "STAT", code: "198I", title: "Statistics" },
+  { subject: "STAT", code: "199H", title: "Statistics" },
+  { subject: "STAT", code: "200", title: "Statistics" },
+  { subject: "STAT", code: "201A", title: "Statistics" },
+  { subject: "STAT", code: "202A", title: "Statistics" },
+  { subject: "STAT", code: "205", title: "Statistics" },
+  { subject: "STAT", code: "206", title: "Statistics" },
+  { subject: "STAT", code: "210A", title: "Statistics" },
+  { subject: "STAT", code: "233A", title: "Statistics" },
+  { subject: "STAT", code: "251", title: "Statistics" },
+  { subject: "STAT", code: "255S", title: "Statistics" },
+  { subject: "STAT", code: "290", title: "Statistics" },
+  { subject: "STAT", code: "291", title: "Statistics" },
+  { subject: "STAT", code: "293", title: "Statistics" },
+  { subject: "STAT", code: "297", title: "Statistics" },
+  { subject: "STAT", code: "299", title: "Statistics" },
+  { subject: "STAT", code: "302", title: "Statistics" },
+  { subject: "TFDP", code: "010", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "022", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "024", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "050S", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "066", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "099", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "101", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "109", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "110A", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "111C", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "120A", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "125G", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "130A", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "142", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "145", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "150A", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "153A", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "155", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "156A", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "157", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "164A", title: "Theater, Film & Digital Prod" },
+  { subject: "TFDP", code: "166A", title: "Theater, Film & Digital Prod" },
+  { subject: "UGRD", code: "040", title: "Div of Undergraduate Education" },
+  { subject: "URST", code: "014", title: "Urban Studies" },
+  { subject: "URST", code: "069", title: "Urban Studies" },
+  { subject: "VNM", code: "001", title: "Vietnamese" },
+  { subject: "VNM", code: "004", title: "Vietnamese" },
+  { subject: "WRIT", code: "001", title: "University Writing Program" },
+  { subject: "WRIT", code: "001L", title: "University Writing Program" },
+  { subject: "WRIT", code: "003", title: "University Writing Program" },
+  { subject: "WRIT", code: "003L", title: "University Writing Program" },
+  { subject: "WRIT", code: "005", title: "University Writing Program" },
+  { subject: "WRIT", code: "005L", title: "University Writing Program" },
+  { subject: "WRIT", code: "007", title: "University Writing Program" },
+  { subject: "WRIT", code: "007L", title: "University Writing Program" },
+  { subject: "WRIT", code: "009", title: "University Writing Program" },
+  { subject: "WRIT", code: "009L", title: "University Writing Program" },
+  { subject: "WRIT", code: "010", title: "University Writing Program" },
+  { subject: "WRIT", code: "010S", title: "University Writing Program" },
+  { subject: "WRIT", code: "020", title: "University Writing Program" },
+  { subject: "WRIT", code: "030", title: "University Writing Program" },
+  { subject: "WRIT", code: "040E", title: "University Writing Program" },
+  { subject: "WRIT", code: "040G", title: "University Writing Program" },
+  { subject: "WRIT", code: "040P", title: "University Writing Program" },
+  { subject: "WRIT", code: "040Q", title: "University Writing Program" },
+  { subject: "WRIT", code: "040S", title: "University Writing Program" },
+  { subject: "WRIT", code: "040X", title: "University Writing Program" },
+  { subject: "WRIT", code: "040Y", title: "University Writing Program" },
+  { subject: "WRIT", code: "301", title: "University Writing Program" },
+  { subject: "WRIT", code: "302", title: "University Writing Program" },
 ];
 
 function getPythonPath() {
@@ -1870,240 +1869,271 @@ function getPythonPath() {
 
 function createBlock(section, courseCode, type) {
   const blocks = [];
-  const schedule = section.schedule || 'TBA';
-  const parts = schedule.split(' ');
-  const days = parts[0] || 'TBA';
-  const timeRange = parts.slice(1).join(' ') || 'TBA';
-  
-  const [startTime, endTime] = timeRange.includes(' - ') 
-    ? timeRange.split(' - ') 
+  const schedule = section.schedule || "TBA";
+  const parts = schedule.split(" ");
+  const days = parts[0] || "TBA";
+  const timeRange = parts.slice(1).join(" ") || "TBA";
+
+  const [startTime, endTime] = timeRange.includes(" - ")
+    ? timeRange.split(" - ")
     : [timeRange, timeRange];
-  
-  if (days !== 'TBA') {
-    const dayMap = { M: 'Mon', T: 'Tue', W: 'Wed', R: 'Thu', F: 'Fri' };
+
+  if (days !== "TBA") {
+    const dayMap = { M: "Mon", T: "Tue", W: "Wed", R: "Thu", F: "Fri" };
     for (const dayChar of days) {
       if (dayMap[dayChar]) {
         blocks.push({
           day: dayMap[dayChar],
-          start: startTime || 'TBA',
-          end: endTime || 'TBA',
+          start: startTime || "TBA",
+          end: endTime || "TBA",
           title: `${courseCode} ${type}`.trim(),
           crn: section.crn,
-          location: section.location || 'TBA',
-          instructor: section.instructors ? section.instructors.join(', ') : 'TBA'
+          location: section.location || "TBA",
+          instructor: section.instructors
+            ? section.instructors.join(", ")
+            : "TBA",
         });
       }
     }
   }
-  
+
   return blocks;
 }
 
 function calculateStats(blocks) {
   const fBlocks = blocks.flat();
-  
+
   if (fBlocks.length === 0) {
-    return { earliest: 'TBA', latest: 'TBA', gaps: 0, days: 0 };
+    return { earliest: "TBA", latest: "TBA", gaps: 0, days: 0 };
   }
-  
+
   const times = fBlocks
-    .filter(block => block.start !== 'TBA' && block.end !== 'TBA')
-    .map(block => ({
+    .filter((block) => block.start !== "TBA" && block.end !== "TBA")
+    .map((block) => ({
       start: timeToMinutes(block.start),
-      end: timeToMinutes(block.end)
+      end: timeToMinutes(block.end),
     }))
-    .filter(time => time.start !== -1 && time.end !== -1);
-  
+    .filter((time) => time.start !== -1 && time.end !== -1);
+
   if (times.length === 0) {
-    return { earliest: 'TBA', latest: 'TBA', gaps: 0, days: 0 };
+    return { earliest: "TBA", latest: "TBA", gaps: 0, days: 0 };
   }
-  
-  const startTimes = times.map(t => t.start);
-  const endTimes = times.map(t => t.end);
+
+  const startTimes = times.map((t) => t.start);
+  const endTimes = times.map((t) => t.end);
   const earliest = Math.min(...startTimes);
   const latest = Math.max(...endTimes);
-  
-  const uniqueDays = new Set(fBlocks.map(block => block.day)).size;
-  
+
+  const uniqueDays = new Set(fBlocks.map((block) => block.day)).size;
+
   return {
     earliest: minutesToTime(earliest),
     latest: minutesToTime(latest),
-    gaps: 0, 
-    days: uniqueDays
+    gaps: 0,
+    days: uniqueDays,
   };
 }
 
 function timeToMinutes(timeStr) {
-  if (!timeStr || timeStr === 'TBA') return -1;
-  
+  if (!timeStr || timeStr === "TBA") return -1;
+
   const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
   if (!match) return -1;
-  
+
   let hours = parseInt(match[1]);
   const minutes = parseInt(match[2]);
   const ampm = match[3].toUpperCase();
-  
-  if (ampm === 'PM' && hours !== 12) hours += 12;
-  if (ampm === 'AM' && hours === 12) hours = 0;
-  
+
+  if (ampm === "PM" && hours !== 12) hours += 12;
+  if (ampm === "AM" && hours === 12) hours = 0;
+
   return hours * 60 + minutes;
 }
 
 function minutesToTime(minutes) {
-  if (minutes === -1) return 'TBA';
-  
+  if (minutes === -1) return "TBA";
+
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
-  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const ampm = hours >= 12 ? "PM" : "AM";
   const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-  
-  return `${displayHours}:${mins.toString().padStart(2, '0')} ${ampm}`;
+
+  return `${displayHours}:${mins.toString().padStart(2, "0")} ${ampm}`;
 }
 
 router.get("/", (req, res) => {
-  const { q } = req.query; 
-  
+  const { q } = req.query;
+
   if (!q) {
     return res.json(courses.slice(0, 50));
   }
-  
+
   const query = q.toLowerCase();
-  const filtered = courses.filter(course => {
+  const filtered = courses.filter((course) => {
     const courseCode = `${course.subject}${course.code}`.toLowerCase();
     const subjectMatch = course.subject.toLowerCase().includes(query);
     const codeMatch = course.code.toLowerCase().includes(query);
     const fullMatch = courseCode.includes(query);
     const titleMatch = course.title.toLowerCase().includes(query);
-    
+
     return subjectMatch || codeMatch || fullMatch || titleMatch;
   });
-  
+
   res.json(filtered.slice(0, 50));
 });
 
 router.post("/generate-schedules", async (req, res) => {
   const { courses: selectedCourses = [], prefs = {} } = req.body;
-  
+
   if (!Array.isArray(selectedCourses) || selectedCourses.length === 0) {
     return res.status(400).json({ error: "courses[] required" });
   }
-  
+
   const courseCodes = [];
   for (const course of selectedCourses) {
-    if (typeof course === 'string') {
+    if (typeof course === "string") {
       courseCodes.push(course);
     } else if (course.subject && course.code) {
       courseCodes.push(`${course.subject}${course.code}`);
     } else {
-      return res.status(400).json({ 
-        error: "Invalid course format. Expected string like 'CS100' or object with subject and code properties." 
+      return res.status(400).json({
+        error:
+          "Invalid course format. Expected string like 'CS100' or object with subject and code properties.",
       });
     }
   }
-  
-  console.log('Generating schedules for courses:', courseCodes);
-  
+
+  console.log("Generating schedules for courses:", courseCodes);
+
   try {
-    const pythonScriptPath = path.join(__dirname, '../../scripts/course_scraper.py');
+    const pythonScriptPath = path.join(
+      __dirname,
+      "../../scripts/course_scraper.py"
+    );
+
     
-    const pythonPath = getPythonPath();
-    
-    console.log('Using Python path:', pythonPath);
-    
-    const pythonProcess = spawn(pythonPath, [pythonScriptPath, 'generate', ...courseCodes], {
-      stdio: ['pipe', 'pipe', 'pipe']
-    });
-    
-    let stdout = '';
-    let stderr = '';
-    
-    pythonProcess.stdout.on('data', (data) => {
+    function getPythonExec() {
+      if (process.env.PYTHON_PATH && process.env.PYTHON_PATH.trim()) {
+        return process.env.PYTHON_PATH.trim();
+      }
+      return process.platform === "win32" ? "python" : "python3";
+    }
+
+    const pythonPath = getPythonExec();
+
+    const pythonProcess = spawn(
+      pythonPath,
+      [pythonScriptPath, "generate", ...courseCodes],
+      {
+        stdio: ["pipe", "pipe", "pipe"],
+      }
+    );
+
+    let stdout = "";
+    let stderr = "";
+
+    pythonProcess.stdout.on("data", (data) => {
+
       stdout += data.toString();
     });
-    
-    pythonProcess.stderr.on('data', (data) => {
+
+    pythonProcess.stderr.on("data", (data) => {
       stderr += data.toString();
     });
-    
-    pythonProcess.on('close', (code) => {
+
+    pythonProcess.on("close", (code) => {
       if (code !== 0) {
-        console.error('Python script error:', stderr);
-        return res.status(500).json({ 
-          error: 'Failed to generate schedules', 
-          details: stderr || 'Python script execution failed'
+        console.error("Python script error:", stderr);
+        return res.status(500).json({
+          error: "Failed to generate schedules",
+          details: stderr || "Python script execution failed",
         });
       }
-      
+
+
       try {
         const results = JSON.parse(stdout);
-        
+
         if (!results.success) {
           return res.status(400).json({
-            error: results.error || 'Schedule generation failed',
-            failed_courses: results.failed_courses || []
+            error: results.error || "Schedule generation failed",
+            failed_courses: results.failed_courses || [],
           });
         }
-        
+
+
         const schedules = results.valid_schedules.map((schedule, index) => {
           const blocks = [];
           const crns = [];
-          
-          schedule.courses.forEach(course => {
+
+          schedule.courses.forEach((course) => {
+
             if (course.lecture) {
-              const lectureBlocks = createBlock(course.lecture, course.course_code, 'LEC');
+              const lectureBlocks = createBlock(
+                course.lecture,
+                course.course_code,
+                "LEC"
+              );
               blocks.push(...lectureBlocks);
               crns.push(course.lecture.crn);
             }
 
             if (course.lab) {
-              const labBlocks = createBlock(course.lab, course.course_code, 'LAB');
+              const labBlocks = createBlock(
+                course.lab,
+                course.course_code,
+                "LAB"
+              );
               blocks.push(...labBlocks);
               crns.push(course.lab.crn);
             }
-            
+
             if (course.discussion) {
-              const discBlocks = createBlock(course.discussion, course.course_code, 'DIS');
+              const discBlocks = createBlock(
+                course.discussion,
+                course.course_code,
+                "DIS"
+              );
               blocks.push(...discBlocks);
               crns.push(course.discussion.crn);
             }
           });
-          
+
           return {
             crns,
             blocks,
-            stats: calculateStats(blocks)
+            stats: calculateStats(blocks),
           };
         });
-        
+
         res.json({
           count: schedules.length,
           schedules,
-          total_combinations: results.total_possible_combinations || schedules.length,
-          conflicting_combinations: results.conflicting_combinations_count || 0
+          total_combinations:
+            results.total_possible_combinations || schedules.length,
+          conflicting_combinations: results.conflicting_combinations_count || 0,
         });
-        
       } catch (parseError) {
-        console.error('Error parsing Python output:', parseError);
-        console.error('Raw output:', stdout);
-        res.status(500).json({ 
-          error: 'Failed to parse schedule results',
-          details: parseError.message
+        console.error("Error parsing Python output:", parseError);
+        console.error("Raw output:", stdout);
+        res.status(500).json({
+          error: "Failed to parse schedule results",
+          details: parseError.message,
         });
       }
     });
-    
+
     setTimeout(() => {
-      pythonProcess.kill('SIGTERM');
+      pythonProcess.kill("SIGTERM");
       if (!res.headersSent) {
-        res.status(408).json({ error: 'Schedule generation timed out' });
+        res.status(408).json({ error: "Schedule generation timed out" });
       }
-    }, 30000); 
-    
+    }, 30000);
   } catch (error) {
-    console.error('Error calling Python script:', error);
-    res.status(500).json({ 
-      error: 'Failed to generate schedules',
-      details: error.message
+    console.error("Error calling Python script:", error);
+    res.status(500).json({
+      error: "Failed to generate schedules",
+      details: error.message,
     });
   }
 });

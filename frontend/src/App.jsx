@@ -2,12 +2,17 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import RequireAuth from "./auth/RequireAuth";
 import Header from "./components/Header";
+
 import CoursePicker from "./pages/CoursePicker";
 import Home from "./pages/Home";
 import Landing from "./pages/Landing";
 import Plan from "./pages/Plan";
 import Results from "./pages/Results";
-import UserProfile from "./pages/UserProfile"; // <-- your renamed profile page
+import UserProfile from "./pages/UserProfile";
+
+// NEW: reviews pages
+import ReadReviews from "./pages/ReadReviews";
+import WriteReview from "./pages/WriteReview";
 
 export default function App() {
   return (
@@ -19,7 +24,7 @@ export default function App() {
           element={<Landing />}
         />
 
-        {/* Legacy redirects (old public routes -> protected /app routes) */}
+        {/* Legacy redirects (public) -> protected /app paths */}
         <Route
           path="/picker"
           element={
@@ -47,7 +52,6 @@ export default function App() {
             />
           }
         />
-        {/* NOTE: profile is protected below; remove any public /profile route to avoid blank pages */}
 
         {/* Protected app */}
         <Route
@@ -76,8 +80,17 @@ export default function App() {
                   <Route
                     path="profile"
                     element={<UserProfile />}
-                  />{" "}
-                  {/* profile lives under /app */}
+                  />
+
+                  {/* Reviews (NOTE: relative paths, not /app/...) */}
+                  <Route
+                    path="reviews/write"
+                    element={<WriteReview />}
+                  />
+                  <Route
+                    path="reviews/read"
+                    element={<ReadReviews />}
+                  />
                 </Routes>
               </main>
             </RequireAuth>
