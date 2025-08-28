@@ -60,7 +60,7 @@ const MONGO_URI = process.env.MONGO_URI;
 const DB_NAME = process.env.DB_NAME || "scheduleEase";
 
 if (!MONGO_URI) {
-  console.error("❌ Missing MONGO_URI in backend/.env");
+  console.error(" Missing MONGO_URI in backend/.env");
   process.exit(1);
 }
 
@@ -97,10 +97,10 @@ async function startMongo() {
     console.warn("Reviews index creation warning:", e?.message);
   }
 
-  console.log(`✅ MongoDB connected • DB: ${DB_NAME}`);
+  console.log(` MongoDB connected • DB: ${DB_NAME}`);
 }
 startMongo().catch((err) => {
-  console.error("❌ MongoDB connection failed:", err.message);
+  console.error(" MongoDB connection failed:", err.message);
   process.exit(1);
 });
 
@@ -153,12 +153,12 @@ app.post("/api/logout", (req, res) => {
 ----------------------------------------- */
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () =>
-  console.log(`🚀 API listening on http://localhost:${PORT}`)
+  console.log(` API listening on http://localhost:${PORT}`)
 );
 
 ["SIGINT", "SIGTERM"].forEach((sig) =>
   process.on(sig, async () => {
-    console.log(`\n🛑 ${sig} received, closing...`);
+    console.log(`\n ${sig} received, closing...`);
     try {
       await client.close();
     } catch {}

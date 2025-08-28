@@ -25,9 +25,7 @@ export default function Landing() {
       <header className="lp-top">
         <div className="lp-brand">SchedulEase</div>
         <nav className="lp-nav">
-          <a href="#features">Features</a>
-          <a href="#how">How it works</a>
-          <a href="#faq">FAQ</a>
+          {/* Removed: Features / How it works / FAQ */}
           <button
             className="lp-btn lp-btn-ghost"
             onClick={onPrimary}
@@ -57,12 +55,7 @@ export default function Landing() {
             >
               {user ? "Open Dashboard" : "Continue with Google (demo)"}
             </button>
-            <a
-              href="#features"
-              className="lp-btn lp-btn-outline"
-            >
-              See features
-            </a>
+            {/* Removed: "See features" secondary CTA */}
           </div>
 
           <ul className="lp-badges">

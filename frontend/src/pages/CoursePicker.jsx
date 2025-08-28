@@ -10,24 +10,23 @@ export default function CoursePicker() {
   const [selected, setSelected] = useState(() =>
     JSON.parse(sessionStorage.getItem("selectedCourses") || "[]")
   );
+  // keep prefs in case you already save/use them elsewhere
   const [prefs, setPrefs] = useState(() =>
     JSON.parse(localStorage.getItem("prefs") || "{}")
   );
   const nav = useNavigate();
 
-  
   useEffect(() => {
     loadCourses("");
   }, []);
 
-  
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (searchQuery.trim()) {
         searchCourses(searchQuery);
       } else {
         setSearchResults([]);
-        loadCourses(""); 
+        loadCourses("");
       }
     }, 300);
 
@@ -62,28 +61,26 @@ export default function CoursePicker() {
 
   const toggleCourse = (course) => {
     const courseCode = `${course.subject}${course.code}`;
-    const exists = selected.find(c => c === courseCode);
-    
+    const exists = selected.find((c) => c === courseCode);
+
     const next = exists
-      ? selected.filter(c => c !== courseCode)
+      ? selected.filter((c) => c !== courseCode)
       : [...selected, courseCode];
-    
+
     setSelected(next);
   };
 
   const removeCourse = (courseCode) => {
-    const next = selected.filter(c => c !== courseCode);
+    const next = selected.filter((c) => c !== courseCode);
     setSelected(next);
   };
 
   const goResults = async () => {
     if (selected.length === 0) return;
-    
+
     try {
       sessionStorage.setItem("selectedCourses", JSON.stringify(selected));
       localStorage.setItem("prefs", JSON.stringify(prefs));
-      
-
       nav("/app/results");
     } catch (error) {
       console.error("Error navigating to results:", error);
@@ -99,46 +96,13 @@ export default function CoursePicker() {
 
   return (
     <div className="stack">
-      <section className="card" style={{ padding: 14 }}>
-        <h2 className="h2">Preferences</h2>
-        <div className="prefs">
-          <label>
-            <input
-              type="checkbox"
-              checked={!!prefs.noFriday}
-              onChange={(e) =>
-                setPrefs((p) => ({ ...p, noFriday: e.target.checked }))
-              }
-            />{" "}
-            Avoid Friday classes
-          </label>
-          <label>
-            Start after{" "}
-            <input
-              className="time"
-              type="time"
-              value={prefs.startAfter || ""}
-              onChange={(e) =>
-                setPrefs((p) => ({ ...p, startAfter: e.target.value }))
-              }
-            />
-          </label>
-          <label>
-            End before{" "}
-            <input
-              className="time"
-              type="time"
-              value={prefs.endBefore || ""}
-              onChange={(e) =>
-                setPrefs((p) => ({ ...p, endBefore: e.target.value }))
-              }
-            />
-          </label>
-        </div>
-      </section>
+      {/* Preferences card removed */}
 
       {selected.length > 0 && (
-        <section className="card" style={{ padding: 14 }}>
+        <section
+          className="card"
+          style={{ padding: 14 }}
+        >
           <h3 className="h2">Selected Courses ({selected.length})</h3>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             {selected.map((courseCode) => (
@@ -152,7 +116,7 @@ export default function CoursePicker() {
                   display: "flex",
                   alignItems: "center",
                   gap: 6,
-                  fontSize: "14px"
+                  fontSize: "14px",
                 }}
               >
                 <span style={{ fontWeight: "600", color: "var(--primary)" }}>
@@ -167,7 +131,7 @@ export default function CoursePicker() {
                     cursor: "pointer",
                     padding: 0,
                     fontSize: "16px",
-                    lineHeight: 1
+                    lineHeight: 1,
                   }}
                   title="Remove course"
                 >
@@ -179,12 +143,29 @@ export default function CoursePicker() {
         </section>
       )}
 
-      <section className="card" style={{ padding: 14 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+      <section
+        className="card"
+        style={{ padding: 14 }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 14,
+          }}
+        >
           <h2 className="h2">Search Courses</h2>
-          {isSearching && <span className="muted" style={{ fontSize: "14px" }}>Searching...</span>}
+          {isSearching && (
+            <span
+              className="muted"
+              style={{ fontSize: "14px" }}
+            >
+              Searching...
+            </span>
+          )}
         </div>
-        
+
         <div style={{ marginBottom: 14 }}>
           <input
             type="text"
@@ -196,28 +177,45 @@ export default function CoursePicker() {
           />
         </div>
 
-        <div className="course-list" style={{ maxHeight: "400px", overflowY: "auto" }}>
+        <div
+          className="course-list"
+          style={{ maxHeight: "400px", overflowY: "auto" }}
+        >
           {displayCourses.length === 0 ? (
-            <div style={{ padding: "20px", textAlign: "center", color: "var(--muted)" }}>
-              {isSearching ? "Searching..." : searchQuery.trim() ? "No courses found" : "Loading courses..."}
+            <div
+              style={{
+                padding: "20px",
+                textAlign: "center",
+                color: "var(--muted)",
+              }}
+            >
+              {isSearching
+                ? "Searching..."
+                : searchQuery.trim()
+                ? "No courses found"
+                : "Loading courses..."}
             </div>
           ) : (
             displayCourses.map((c) => {
               const courseCode = `${c.subject}${c.code}`;
-              const selected = isSelected(c);
-              
+              const selectedFlag = isSelected(c);
+
               return (
                 <label
                   key={courseCode}
-                  className={`course-item ${selected ? 'selected' : ''}`}
+                  className={`course-item ${selectedFlag ? "selected" : ""}`}
                   style={{
-                    backgroundColor: selected ? "rgba(155, 140, 255, 0.1)" : undefined,
-                    borderColor: selected ? "rgba(155, 140, 255, 0.3)" : undefined
+                    backgroundColor: selectedFlag
+                      ? "rgba(155, 140, 255, 0.1)"
+                      : undefined,
+                    borderColor: selectedFlag
+                      ? "rgba(155, 140, 255, 0.3)"
+                      : undefined,
                   }}
                 >
                   <input
                     type="checkbox"
-                    checked={selected}
+                    checked={selectedFlag}
                     onChange={() => toggleCourse(c)}
                   />
                   <span className="code">
