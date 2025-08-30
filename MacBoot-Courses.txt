@@ -1823,7 +1823,7 @@ function getPythonPath() {
   const platform = os.platform();
   
   if (platform === 'win32') {
-    
+
     //Currently having issues with trying to get windows boot to work(if you are windows use other file WindowsBoot-courses.txt)
     const windowsPaths = [
       'C:\\Users\\A\\AppData\\Local\\Programs\\Python\\Python313\\python.exe',
@@ -1868,8 +1868,8 @@ function getPythonPath() {
   }
 }
 
-function createSet(section, courseCode, type) {
-  const createB = [];
+function createBlock(section, courseCode, type) {
+  const blocks = [];
   const schedule = section.schedule || "TBA";
   const parts = schedule.split(" ");
   const days = parts[0] || "TBA";
@@ -1883,7 +1883,7 @@ function createSet(section, courseCode, type) {
     const dayMap = { M: "Mon", T: "Tue", W: "Wed", R: "Thu", F: "Fri" };
     for (const dayChar of days) {
       if (dayMap[dayChar]) {
-        createB.push({
+        blocks.push({
           day: dayMap[dayChar],
           start: startTime || "TBA",
           end: endTime || "TBA",
@@ -1898,11 +1898,11 @@ function createSet(section, courseCode, type) {
     }
   }
 
-  return createB;
+  return blocks;
 }
 
-function calculateStats(blockss) {
-  const fBlocks = blockss.flat();
+function calculateStats(blocks) {
+  const fBlocks = blocks.flat();
 
   if (fBlocks.length === 0) {
     return { earliest: "TBA", latest: "TBA", gaps: 0, days: 0 };
@@ -2064,46 +2064,46 @@ router.post("/generate-schedules", async (req, res) => {
 
 
         const schedules = results.valid_schedules.map((schedule, index) => {
-          const blockss = [];
+          const blocks = [];
           const crns = [];
 
           schedule.courses.forEach((course) => {
 
             if (course.lecture) {
-              const lectureBlocks = createSet(
+              const lectureBlocks = createBlock(
                 course.lecture,
                 course.course_code,
                 "LEC"
               );
-              blockss.push(...lectureBlocks);
+              blocks.push(...lectureBlocks);
               crns.push(course.lecture.crn);
             }
 
             if (course.lab) {
-              const labBlocks = createSet(
+              const labBlocks = createBlock(
                 course.lab,
                 course.course_code,
                 "LAB"
               );
-              blockss.push(...labBlocks);
+              blocks.push(...labBlocks);
               crns.push(course.lab.crn);
             }
 
             if (course.discussion) {
-              const discBlocks = createSet(
+              const discBlocks = createBlock(
                 course.discussion,
                 course.course_code,
                 "DIS"
               );
-              blockss.push(...discBlocks);
+              blocks.push(...discBlocks);
               crns.push(course.discussion.crn);
             }
           });
 
           return {
             crns,
-            blockss,
-            stats: calculateStats(blockss),
+            blocks,
+            stats: calculateStats(blocks),
           };
         });
 
