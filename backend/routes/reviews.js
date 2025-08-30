@@ -2,26 +2,19 @@ const express = require("express");
 const { ObjectId } = require("mongodb");
 const router = express.Router();
 
-/* --------------------------- Name helpers --------------------------- */
-
-/** Canonical: always lowercased, “last, first …” spacing normalized */
 function canonicalProfessor(input = "") {
   let s = String(input).trim();
   if (!s) return "";
   if (s.includes(",")) {
-    // “Last,First  M” -> “last, first m”
     s = s.replace(/\s*,\s*/g, ", ").replace(/\s+/g, " ");
     return s.toLowerCase();
   }
-  // No comma: treat as “Last First …” -> “last, first …”
   const parts = s.split(/\s+/);
   if (parts.length === 1) return parts[0].toLowerCase();
   const last = parts[0];
   const firstRest = parts.slice(1).join(" ");
   return `${last}, ${firstRest}`.toLowerCase();
 }
-
-/** Alternate norm without comma so old/new entries match either way */
 function altNoCommaProfessor(input = "") {
   let s = String(input).trim();
   if (!s) return "";
@@ -29,7 +22,6 @@ function altNoCommaProfessor(input = "") {
   return s.toLowerCase();
 }
 
-/** Format a display name from separate fields (avoid lone commas) */
 function formatProfessorName(last, first) {
   last = String(last || "").trim();
   first = String(first || "").trim();
@@ -39,7 +31,6 @@ function formatProfessorName(last, first) {
   return "";
 }
 
-/** Split a display into { last, first } for storage (best effort) */
 function splitDisplayToNames(display = "") {
   const s = String(display).trim();
   if (!s) return { last: "", first: "" };
@@ -52,7 +43,6 @@ function splitDisplayToNames(display = "") {
   return { last: parts[0], first: parts.slice(1).join(" ") };
 }
 
-/** Accept either separate last/first or a single “professor” string */
 function getProfessorFromBody(body = {}) {
   const last = String(body.professorLast || "").trim();
   const first = String(body.professorFirst || "").trim();
@@ -84,15 +74,6 @@ function getProfessorFromBody(body = {}) {
   return { display: "", last: "", first: "", normCanon: "", normNoComma: "" };
 }
 
-/* ------------------------------ Routes ------------------------------ */
-
-/**
- * POST /api/reviews
- * Accepts either:
- *  A) { professorLast, professorFirst, rating, description, courseCode? }
- *  B) { professor, rating, text, courseCode? }
- * Requires login (uses req.user)
- */
 router.post("/", async (req, res) => {
   try {
     const db = req.db || req.app.locals.db;
@@ -134,19 +115,18 @@ router.post("/", async (req, res) => {
         .toUpperCase() || null;
 
     const doc = {
-      // display + searchable norms
-      professor, // e.g. “Miller, Patrick” or “Miller”
+      professor, 
       professorLast,
       professorFirst,
       professorNorm: normCanon,
       professorNormNoComma: normNoComma,
 
-      // review fields
+
       rating: Math.round(r),
       description,
       courseCode,
 
-      // author
+
       userId: req.user.id,
       userName: req.user.name,
       userEmail: req.user.email,
@@ -161,10 +141,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-/**
- * GET /api/reviews?professor=Last, First  (also accepts “Last First”)
- * Match by either canonical norm or the no-comma norm.
- */
 router.get("/", async (req, res) => {
   try {
     const db = req.db || req.app.locals.db;
@@ -184,7 +160,7 @@ router.get("/", async (req, res) => {
       $or: [
         { professorNorm: normCanon },
         { professorNormNoComma: normNoComma },
-        { professorNorm: normNoComma }, // tolerate swapped norms
+        { professorNorm: normNoComma }, 
       ],
     })
       .sort({ createdAt: -1 })
@@ -198,10 +174,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-/**
- * GET /api/reviews/search?q=Last, First
- * Prefix search (comma vs spaces treated as equivalent)
- */
 router.get("/search", async (req, res) => {
   try {
     const db = req.db || req.app.locals.db;
@@ -232,7 +204,6 @@ router.get("/search", async (req, res) => {
   }
 });
 
-/** Optional: single review by id */
 router.get("/:id", async (req, res) => {
   try {
     const db = req.db || req.app.locals.db;
@@ -252,7 +223,6 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-/* --------------------------- util --------------------------- */
 function escapeRegex(s = "") {
   return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
