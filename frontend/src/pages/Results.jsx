@@ -1,4 +1,3 @@
-// frontend/src/pages/Results.jsx
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import {
@@ -29,7 +28,6 @@ export default function Results() {
     generateSchedules();
   }, []);
 
-  // Close any open share menu when clicking outside the share area
   useEffect(() => {
     function onDocClick(e) {
       const openMenu = document.querySelector(".share-menu");
@@ -351,7 +349,6 @@ export default function Results() {
                 position: "relative",
               }}
             >
-              {/* Save locally */}
               <button
                 className="btn btn-primary"
                 onClick={() => {
@@ -374,7 +371,6 @@ export default function Results() {
                 Save Schedule
               </button>
 
-              {/* Copy CRNs */}
               <button
                 className="btn"
                 onClick={() => {
@@ -386,7 +382,6 @@ export default function Results() {
                 Copy CRNs
               </button>
 
-              {/* Print / ICS */}
               <button
                 className="btn"
                 onClick={() => printSchedule()}
@@ -401,7 +396,6 @@ export default function Results() {
                 Export .ICS
               </button>
 
-              {/* Google Calendar */}
               <button
                 className="btn"
                 onClick={() =>
@@ -410,8 +404,6 @@ export default function Results() {
               >
                 Add to Google Calendar
               </button>
-
-              {/* Share dropdown */}
               <div style={{ position: "relative" }}>
                 <button
                   className="btn"
