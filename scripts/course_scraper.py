@@ -1,4 +1,3 @@
-# scripts/course_scraper.py
 import sys
 import json
 import requests
@@ -98,7 +97,7 @@ class UCRCourseScraper:
         
         self.unique_session_id = f"0vmfe{int(time.time() * 1000)}"
 
-    def search_course(self, course_code, term="202540"):
+    def sCourse(self, course_code, term="202540"):
         
         if not self.unique_session_id:
             self.initialize_session(term)
@@ -148,7 +147,7 @@ class UCRCourseScraper:
         except json.JSONDecodeError:
             raise Exception("Invalid JSON response from server")
 
-    def categorize_section_type(self, section_num: str, schedule_type: str) -> str:
+    def categorizeSection(self, section_num: str, schedule_type: str) -> str:
         schedule_type_lower = schedule_type.lower()
         
         try:
@@ -202,7 +201,7 @@ class UCRCourseScraper:
         except ValueError:
             return "TBA"
 
-    def parse_time_to_minutes(self, time_str: str) -> int:
+    def parseMin(self, time_str: str) -> int:
         if not time_str or time_str == "TBA" or len(time_str) != 4:
             return -1
         
@@ -213,7 +212,7 @@ class UCRCourseScraper:
         except ValueError:
             return -1
 
-    def extract_meeting_details(self, course_data: Dict) -> Dict:
+    def extractMeeting(self, course_data: Dict) -> Dict:
         meeting_details = {
             'schedule': 'TBA',
             'location': 'TBA',
@@ -261,20 +260,20 @@ class UCRCourseScraper:
                     'days_list': days,
                     'raw_start_time': raw_start_time,
                     'raw_end_time': raw_end_time,
-                    'start_time_minutes': self.parse_time_to_minutes(raw_start_time),
-                    'end_time_minutes': self.parse_time_to_minutes(raw_end_time)
+                    'start_time_minutes': self.parseMin(raw_start_time),
+                    'end_time_minutes': self.parseMin(raw_end_time)
                 })
                 break
         
         return meeting_details
 
-    def analyze_section_linking_patterns(self, course_code: str, term: str = "202540") -> Dict:
+    def linkCourse(self, course_code: str, term: str = "202540") -> Dict:
         try:
             self.clear_session()
             self.initialize_session(term)
             time.sleep(1)
             
-            course_data = self.search_course(course_code, term)
+            course_data = self.sCourse(course_code, term)
             
             if not course_data.get('success') or not course_data.get('data'):
                 return {
@@ -290,12 +289,12 @@ class UCRCourseScraper:
             
             for section in sections:
                 schedule_type = section.get('scheduleTypeDescription', '').lower()
-                meeting_details = self.extract_meeting_details(section)
+                meeting_details = self.extractMeeting(section)
                 section_num = section['sequenceNumber']
                 
-                categorized_type = self.categorize_section_type(section_num, schedule_type)
+                categorized_type = self.categorizeSection(section_num, schedule_type)
                 
-                section_info = {
+                sectionI = {
                     'crn': section['courseReferenceNumber'],
                     'course_title': section['courseTitle'],
                     'course_code': f"{section['subject']}{section['courseNumber']}",
@@ -318,18 +317,18 @@ class UCRCourseScraper:
                 }
                 
                 if categorized_type == 'lecture':
-                    lectures.append(section_info)
+                    lectures.append(sectionI)
                 elif categorized_type == 'lab':
-                    labs.append(section_info)
+                    labs.append(sectionI)
                 elif categorized_type == 'discussion':
-                    discussions.append(section_info)
+                    discussions.append(sectionI)
             
-            valid_combinations = self.determine_advanced_linking(lectures, labs, discussions)
+            validCombo = self.findLink(lectures, labs, discussions)
             
             return {
                 'success': True,
                 'course_code': course_code.upper(),
-                'combinations': valid_combinations,
+                'combinations': validCombo,
                 'lectures': lectures,
                 'labs': labs,
                 'discussions': discussions
@@ -342,33 +341,33 @@ class UCRCourseScraper:
                 'course_code': course_code.upper()
             }
 
-    def determine_advanced_linking(self, lectures: List[Dict], labs: List[Dict], discussions: List[Dict]) -> List[Dict]:
-        valid_combinations = []
+    def findLink(self, lectures: List[Dict], labs: List[Dict], discussions: List[Dict]) -> List[Dict]:
+        validCombo = []
         
         if not lectures:
-            return valid_combinations
+            return validCombo
         
         if len(lectures) == 1:
             lecture = lectures[0]
-            lab_options = labs if labs else [None]
-            disc_options = discussions if discussions else [None]
+            labO = labs if labs else [None]
+            discO = discussions if discussions else [None]
             
-            for lab in lab_options:
-                for disc in disc_options:
-                    valid_combinations.append({
+            for lab in labO:
+                for disc in discO:
+                    validCombo.append({
                         'lecture': lecture,
                         'lab': lab,
                         'discussion': disc
                     })
-            return valid_combinations
+            return validCombo
         
-        pattern_links = self.find_improved_section_pattern_links(lectures, labs, discussions)
-        if pattern_links:
-            return pattern_links
+        pLink = self.iLinked(lectures, labs, discussions)
+        if pLink:
+            return pLink
         
-        return self.conservative_linking(lectures, labs, discussions)
+        return self.cLinking(lectures, labs, discussions)
     
-    def find_improved_section_pattern_links(self, lectures: List[Dict], labs: List[Dict], discussions: List[Dict]) -> List[Dict]:
+    def iLinked(self, lectures: List[Dict], labs: List[Dict], discussions: List[Dict]) -> List[Dict]:
         combinations = []
         
         lectures_sorted = sorted(lectures, key=lambda x: int(x['section']))
@@ -398,19 +397,19 @@ class UCRCourseScraper:
             else:
                 for lab in labs_sorted:
                     lab_num = int(lab['section'])
-                    if self.sections_numerically_linked(lec_num, lab_num):
+                    if self.sectionslinked(lec_num, lab_num):
                         linked_labs.append(lab)
                 
                 for disc in discussions_sorted:
                     disc_num = int(disc['section'])
-                    if self.sections_numerically_linked(lec_num, disc_num):
+                    if self.sectionslinked(lec_num, disc_num):
                         linked_discussions.append(disc)
             
-            lab_options = linked_labs if linked_labs else [None]
-            disc_options = linked_discussions if linked_discussions else [None]
+            labO = linked_labs if linked_labs else [None]
+            discO = linked_discussions if linked_discussions else [None]
             
-            for lab in lab_options:
-                for disc in disc_options:
+            for lab in labO:
+                for disc in discO:
                     combinations.append({
                         'lecture': lecture,
                         'lab': lab,
@@ -419,26 +418,26 @@ class UCRCourseScraper:
         
         return combinations if combinations else None
     
-    def conservative_linking(self, lectures: List[Dict], labs: List[Dict], discussions: List[Dict]) -> List[Dict]:
+    def cLinking(self, lectures: List[Dict], labs: List[Dict], discussions: List[Dict]) -> List[Dict]:
         combinations = []
         
-        labs_per_lecture = max(1, len(labs) // len(lectures)) if labs else 0
-        discussions_per_lecture = max(1, len(discussions) // len(lectures)) if discussions else 0
+        linkLabLecture = max(1, len(labs) // len(lectures)) if labs else 0
+        linkDiscussionLecture = max(1, len(discussions) // len(lectures)) if discussions else 0
         
         for i, lecture in enumerate(lectures):
-            start_lab = i * labs_per_lecture
-            end_lab = min((i + 1) * labs_per_lecture, len(labs))
+            start_lab = i * linkLabLecture
+            end_lab = min((i + 1) * linkLabLecture, len(labs))
             assigned_labs = labs[start_lab:end_lab] if labs else []
             
-            start_disc = i * discussions_per_lecture
-            end_disc = min((i + 1) * discussions_per_lecture, len(discussions))
-            assigned_discussions = discussions[start_disc:end_disc] if discussions else []
+            startDisc = i * linkDiscussionLecture
+            endDisc = min((i + 1) * linkDiscussionLecture, len(discussions))
+            assigned_discussions = discussions[startDisc:endDisc] if discussions else []
             
-            lab_options = assigned_labs if assigned_labs else [None]
-            disc_options = assigned_discussions if assigned_discussions else [None]
+            labO = assigned_labs if assigned_labs else [None]
+            discO = assigned_discussions if assigned_discussions else [None]
             
-            for lab in lab_options:
-                for disc in disc_options:
+            for lab in labO:
+                for disc in discO:
                     combinations.append({
                         'lecture': lecture,
                         'lab': lab,
@@ -447,7 +446,7 @@ class UCRCourseScraper:
         
         return combinations
     
-    def sections_numerically_linked(self, lec_num: int, other_num: int) -> bool:
+    def sectionslinked(self, lec_num: int, other_num: int) -> bool:
         if lec_num == 0 or other_num == 0:
             return False
         
@@ -467,7 +466,7 @@ class UCRCourseScraper:
             
         return False
 
-    def times_conflict(self, section1: Dict, section2: Dict) -> bool:
+    def timesConflict(self, section1: Dict, section2: Dict) -> bool:
         if (section1['start_time_minutes'] == -1 or section1['end_time_minutes'] == -1 or
             section2['start_time_minutes'] == -1 or section2['end_time_minutes'] == -1):
             return False
@@ -483,107 +482,107 @@ class UCRCourseScraper:
         
         return start1 < end2 and start2 < end1
 
-    def generate_schedule_combinations(self, course_list: List[str], term: str = "202540") -> Dict:
+    def scheduleGenerate(self, course_list: List[str], term: str = "202540") -> Dict:
         all_course_options = []
-        failed_courses = []
+        failedExtraction = []
         
         for course_code in course_list:
-            course_options = self.analyze_section_linking_patterns(course_code, term)
+            course_options = self.linkCourse(course_code, term)
             if course_options['success']:
                 all_course_options.append(course_options)
             else:
-                failed_courses.append({
+                failedExtraction.append({
                     'course': course_code,
                     'error': course_options['error']
                 })
         
-        if failed_courses:
+        if failedExtraction:
             return {
                 'success': False,
-                'failed_courses': failed_courses,
-                'error': 'Some courses could not be retrieved'
+                'failedExtraction': failedExtraction,
+                'error': 'Issue trying to get everything'
             }
         
-        course_combinations = []
+        courseCombo = []
         
         for course_options in all_course_options:
-            course_combinations.append(course_options['combinations'])
+            courseCombo.append(course_options['combinations'])
         
-        all_combinations = list(product(*course_combinations))
-        total_combinations = len(all_combinations)
+        fullAmount = list(product(*courseCombo))
+        fullCombination = len(fullAmount)
         
-        valid_combinations = []
+        validCombo = []
         
-        for combination in all_combinations:
+        for combination in fullAmount:
             all_sections = []
             
-            for course_combo in combination:
-                all_sections.append(course_combo['lecture'])
-                if course_combo['lab']:
-                    all_sections.append(course_combo['lab'])
-                if course_combo['discussion']:
-                    all_sections.append(course_combo['discussion'])
+            for courseCombo in combination:
+                all_sections.append(courseCombo['lecture'])
+                if courseCombo['lab']:
+                    all_sections.append(courseCombo['lab'])
+                if courseCombo['discussion']:
+                    all_sections.append(courseCombo['discussion'])
             
-            has_conflict = False
+            issue = False
             
             for i in range(len(all_sections)):
                 for j in range(i + 1, len(all_sections)):
-                    if self.times_conflict(all_sections[i], all_sections[j]):
-                        has_conflict = True
+                    if self.timesConflict(all_sections[i], all_sections[j]):
+                        issue = True
                         break
-                if has_conflict:
+                if issue:
                     break
             
-            if not has_conflict:
-                valid_combinations.append(combination)
+            if not issue:
+                validCombo.append(combination)
         
         results = {
             'success': True,
             'courses_analyzed': course_list,
             'term': term,
-            'total_possible_combinations': total_combinations,
-            'valid_combinations_count': len(valid_combinations),
-            'conflicting_combinations_count': total_combinations - len(valid_combinations),
+            'total_possible_combinations': fullCombination,
+            'valid-Combo_count': len(validCombo),
+            'conflicting_combinations_count': fullCombination - len(validCombo),
             'valid_schedules': []
         }
         
-        for i, combination in enumerate(valid_combinations, 1):
+        for i, combination in enumerate(validCombo, 1):
             schedule = {
                 'schedule_id': i,
                 'courses': []
             }
             
-            for course_combo in combination:
-                course_schedule = {
-                    'course_code': course_combo['lecture']['course_code'],
+            for courseCombo in combination:
+                courseS = {
+                    'course_code': courseCombo['lecture']['course_code'],
                     'lecture': {
-                        'crn': course_combo['lecture']['crn'],
-                        'section': course_combo['lecture']['section'],
-                        'schedule': course_combo['lecture']['schedule'],
-                        'location': course_combo['lecture']['location'],
-                        'instructors': course_combo['lecture']['instructors']
+                        'crn': courseCombo['lecture']['crn'],
+                        'section': courseCombo['lecture']['section'],
+                        'schedule': courseCombo['lecture']['schedule'],
+                        'location': courseCombo['lecture']['location'],
+                        'instructors': courseCombo['lecture']['instructors']
                     }
                 }
                 
-                if course_combo['lab']:
-                    course_schedule['lab'] = {
-                        'crn': course_combo['lab']['crn'],
-                        'section': course_combo['lab']['section'],
-                        'schedule': course_combo['lab']['schedule'],
-                        'location': course_combo['lab']['location'],
-                        'instructors': course_combo['lab']['instructors']
+                if courseCombo['lab']:
+                    courseS['lab'] = {
+                        'crn': courseCombo['lab']['crn'],
+                        'section': courseCombo['lab']['section'],
+                        'schedule': courseCombo['lab']['schedule'],
+                        'location': courseCombo['lab']['location'],
+                        'instructors': courseCombo['lab']['instructors']
                     }
                 
-                if course_combo['discussion']:
-                    course_schedule['discussion'] = {
-                        'crn': course_combo['discussion']['crn'],
-                        'section': course_combo['discussion']['section'],
-                        'schedule': course_combo['discussion']['schedule'],
-                        'location': course_combo['discussion']['location'],
-                        'instructors': course_combo['discussion']['instructors']
+                if courseCombo['discussion']:
+                    courseS['discussion'] = {
+                        'crn': courseCombo['discussion']['crn'],
+                        'section': courseCombo['discussion']['section'],
+                        'schedule': courseCombo['discussion']['schedule'],
+                        'location': courseCombo['discussion']['location'],
+                        'instructors': courseCombo['discussion']['instructors']
                     }
                 
-                schedule['courses'].append(course_schedule)
+                schedule['courses'].append(courseS)
             
             results['valid_schedules'].append(schedule)
         
@@ -593,7 +592,7 @@ def main():
     if len(sys.argv) < 3:
         print(json.dumps({
             'success': False,
-            'error': 'Usage: python course_scraper.py generate COURSE1 COURSE2 ...'
+            'error': 'Usage: Generate Error'
         }))
         return
     
@@ -617,7 +616,7 @@ def main():
     
     try:
         scraper = UCRCourseScraper()
-        results = scraper.generate_schedule_combinations(courses)
+        results = scraper.scheduleGenerate(courses)
         print(json.dumps(results, indent=2))
     except Exception as e:
         print(json.dumps({
