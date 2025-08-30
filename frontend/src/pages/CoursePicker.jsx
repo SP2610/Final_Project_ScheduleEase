@@ -10,7 +10,6 @@ export default function CoursePicker() {
   const [selected, setSelected] = useState(() =>
     JSON.parse(sessionStorage.getItem("selectedCourses") || "[]")
   );
-  // keep prefs in case you already save/use them elsewhere
   const [prefs, setPrefs] = useState(() =>
     JSON.parse(localStorage.getItem("prefs") || "{}")
   );
