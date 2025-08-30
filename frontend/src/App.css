@@ -7,8 +7,8 @@
   --panel-solid: #ffffff;
   --text: #e9ecff;
   --muted: #a8b0d3;
-  --accent: #8b7bff; /* lavender */
-  --accent-2: #5ed1ff; /* aqua */
+  --accent: #8b7bff; 
+  --accent-2: #5ed1ff; 
   --ring: rgba(139, 123, 255, 0.35);
   --ok: #22c55e;
   --warn: #f59e0b;
@@ -347,7 +347,7 @@ textarea:focus {
   filter: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  isolation: isolate; /* creates a new stacking context */
+  isolation: isolate;
   z-index: 10000 !important;
 }
 
