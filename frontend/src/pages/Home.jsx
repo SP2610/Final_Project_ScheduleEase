@@ -1,4 +1,4 @@
-// frontend/src/pages/Home.jsx
+
 import { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 
@@ -6,12 +6,10 @@ export default function Home() {
   const navigate = useNavigate();
   const [previewBlocks, setPreviewBlocks] = useState([]);
 
-  // Load the latest saved plan (what shows up on the Plans page)
   const loadLatestPlan = () => {
     try {
       const plans = JSON.parse(localStorage.getItem("plans") || "[]");
       if (plans.length > 0) {
-        // plans are saved newest-first in your Results.jsx "Save Schedule"
         setPreviewBlocks(plans[0].blocks || []);
       } else {
         setPreviewBlocks([]);
@@ -23,7 +21,6 @@ export default function Home() {
 
   useEffect(() => {
     loadLatestPlan();
-    // If any other tab updates localStorage, reflect it
     const onStorage = (e) => {
       if (e.key === "plans") loadLatestPlan();
     };
@@ -92,8 +89,6 @@ export default function Home() {
                 cursor: hasPreview ? "pointer" : "default",
               }}
               onClick={() => {
-                // If we have something to show, go to Plans (most relevant).
-                // Otherwise go to Results so the user can create the first plan.
                 navigate(hasPreview ? "/app/plans" : "/app/results");
               }}
             >
@@ -113,8 +108,6 @@ export default function Home() {
     </div>
   );
 }
-
-/* ---------- Small helpers rendered inside the preview card --------------- */
 
 function EmptyPreview({ onRefresh }) {
   return (
@@ -174,10 +167,6 @@ function OverlayControls({ onRefresh }) {
   );
 }
 
-/**
- * MiniTimetable – compact week preview for the hero card.
- * Expects blocks like in your Results: { day:'Mon', start:'1:00 PM', end:'1:50 PM', title, crn }
- */
 function MiniTimetable({ blocks }) {
   const order = ["Mon", "Tue", "Wed", "Thu", "Fri"];
   const byDay = useMemo(() => {
@@ -186,7 +175,6 @@ function MiniTimetable({ blocks }) {
       const k = b.day || "";
       if (map[k]) map[k].push(b);
     });
-    // Keep a stable order per day by start time if present
     order.forEach((d) => {
       map[d].sort((a, b) => (a.start || "").localeCompare(b.start || ""));
     });
@@ -197,7 +185,6 @@ function MiniTimetable({ blocks }) {
     <div
       className="timetable"
       style={{
-        // Fit nicely inside the preview card
         gridTemplateColumns: "repeat(5, 1fr)",
         gap: 10,
         padding: 12,
@@ -262,12 +249,9 @@ function MiniTimetable({ blocks }) {
 }
 
 function shortenTitle(t = "") {
-  // Keep a concise label (e.g., "CS010 LEC" out of "CS010 LEC • Room...")
-  // First, try "COURSECODE ..." prefix
   const m = t.match(/^([A-Z]+\d+[A-Z]*)/);
   if (m) {
     const code = m[1];
-    // Try to grab a short kind like LEC/LAB/DIS
     const kind = (t.match(/\b(LEC|LAB|DIS)\b/i) || [])[1] || "";
     return kind ? `${code} ${kind.toUpperCase()}` : code;
   }
