@@ -21,8 +21,7 @@ Packages needed to run
 If you are running on windows look in the main directory and copy the WindowsBoot-Courses.txt into backend/routes/courses.js and scroll down and paste in the directory of where python is located at in your computer.(note** you will see comments that will show you want to put in when you visit the windowboot-courses.txt file)
 
 
-
-
+If you are running on mac look in the main directory and copy the MacBoot-Courses.txt and paste it into backend/routes/courses.js you will see comments that will tell the current python directories if it doesnt match yours then add yours to the code
 
 
 How to Run Locally from main directory:
