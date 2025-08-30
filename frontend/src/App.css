@@ -1,6 +1,4 @@
-/* -----------------------------------------------------------
-   Design tokens
------------------------------------------------------------ */
+
 :root {
   --bg-1: #0f1020;
   --bg-2: #121325;
@@ -22,9 +20,6 @@
   --maxw: 1120px;
 }
 
-/* -----------------------------------------------------------
-   Global background + typography
------------------------------------------------------------ */
 html,
 body,
 #root {
@@ -50,9 +45,6 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* -----------------------------------------------------------
-   Layout helpers
------------------------------------------------------------ */
 .container {
   max-width: var(--maxw);
   margin: 0 auto;
@@ -76,7 +68,6 @@ body {
   padding: 28px;
 }
 
-/* Center helpers */
 .center-page {
   min-height: calc(100vh - 120px);
   display: grid;
@@ -87,9 +78,6 @@ body {
   place-items: center;
 }
 
-/* -----------------------------------------------------------
-   Cards (soft glass)
------------------------------------------------------------ */
 .card {
   background: linear-gradient(
     180deg,
@@ -110,9 +98,6 @@ body {
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.45);
 }
 
-/* -----------------------------------------------------------
-   Navigation
------------------------------------------------------------ */
 .nav {
   position: sticky;
   top: 0;
@@ -166,9 +151,6 @@ body {
   color: #fff;
 }
 
-/* -----------------------------------------------------------
-   Type scale
------------------------------------------------------------ */
 .h1 {
   font-size: clamp(38px, 5vw, 56px);
   line-height: 1.05;
@@ -198,9 +180,6 @@ body {
   color: transparent;
 }
 
-/* -----------------------------------------------------------
-   Buttons
------------------------------------------------------------ */
 .btn {
   appearance: none;
   border: none;
@@ -244,7 +223,6 @@ body {
   font-size: 16px;
 }
 
-/* Ghost for tiny actions (header) */
 .btn-ghost {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -255,9 +233,6 @@ body {
   border-radius: 10px;
 }
 
-/* -----------------------------------------------------------
-   Inputs
------------------------------------------------------------ */
 .input,
 .time,
 textarea {
@@ -281,9 +256,6 @@ textarea:focus {
   box-shadow: 0 0 0 4px var(--ring);
 }
 
-/* -----------------------------------------------------------
-   Home hero / preview
------------------------------------------------------------ */
 .hero.cardlike {
   padding: 28px;
 }
@@ -312,9 +284,6 @@ textarea:focus {
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
-/* -----------------------------------------------------------
-   Avatars & user chip
------------------------------------------------------------ */
 .userchip {
   display: inline-flex;
   align-items: center;
@@ -357,9 +326,6 @@ textarea:focus {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* -----------------------------------------------------------
-   Dropdown menu
------------------------------------------------------------ */
 .menu {
   position: absolute;
   right: 0;
@@ -376,7 +342,7 @@ textarea:focus {
   padding: 6px;
   z-index: 10000;
 }
-/* Force menus to render crisp and above any filtered ancestors */
+
 .menu {
   filter: none !important;
   backdrop-filter: none !important;
@@ -385,12 +351,11 @@ textarea:focus {
   z-index: 10000 !important;
 }
 
-/* If your menu lives inside .result-card, make sure that card isn't filtering children */
 .result-card {
   filter: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  transform: none !important; /* avoid 3D/transform creating a new layer */
+  transform: none !important;
 }
 .menu-item {
   width: 100%;
@@ -410,9 +375,6 @@ textarea:focus {
   color: var(--danger);
 }
 
-/* -----------------------------------------------------------
-   Micro animations
------------------------------------------------------------ */
 .fade-up {
   opacity: 0;
   transform: translateY(16px);
@@ -463,9 +425,6 @@ textarea:focus {
   }
 }
 
-/* -----------------------------------------------------------
-   Results page tweaks
------------------------------------------------------------ */
 .result-card {
   padding: 16px;
 }
@@ -474,7 +433,6 @@ textarea:focus {
   font-size: 13px;
 }
 
-/* Mini timetable (kept) */
 .timetable {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -497,20 +455,20 @@ textarea:focus {
   margin-bottom: 6px;
 }
 
-/* === Full-page background that never ends ================================ */
+
 html,
 body,
 #root {
   min-height: 100%;
-  background: #0e1224; /* dark fallback so no more white gaps */
+  background: #0e1224;
 }
 
-/* Fixed, full-bleed aurora field behind the whole app */
+
 body::before {
   content: "";
   position: fixed;
-  inset: -20vh -20vw; /* overhang so it never cuts off */
-  z-index: -1; /* always behind your content */
+  inset: -20vh -20vw; 
+  z-index: -1; 
   pointer-events: none;
   background: radial-gradient(
       1200px 900px at 25% 10%,
@@ -527,11 +485,10 @@ body::before {
       rgba(245, 158, 11, 0.18),
       transparent 60%
     ),
-    linear-gradient(180deg, #0e1224, #0b1020); /* base */
+    linear-gradient(180deg, #0e1224, #0b1020);
   filter: saturate(1.05) blur(2px);
 }
 
-/* If any page wrapper was accidentally white, force it transparent */
 main,
 .container,
 .page,
@@ -539,8 +496,6 @@ main,
   background: transparent !important;
 }
 
-/* === Chip buttons (Rename / Copy CRNs / Export / Delete...) ============== */
-/* Generic chip style that works inside plan cards and results toolbars      */
 .card .toolbar button,
 .card .tools button,
 .plan-card button,
@@ -570,7 +525,6 @@ main,
   transform: translateY(1px);
 }
 
-/* Keep your primary CTA looking punchy */
 .btn-primary {
   background: linear-gradient(180deg, #a0a8ff, #7c6df0);
   color: #0b1220;
@@ -578,31 +532,27 @@ main,
   box-shadow: 0 10px 28px rgba(124, 109, 240, 0.35);
 }
 
-/* === Make all cards match the dark theme a bit more ====================== */
 .card {
   background: rgba(18, 24, 38, 0.78);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
 }
 
-/* The card that holds your Results actions */
 .result-card,
 .result,
 .card {
-  overflow: visible; /* so dropdowns aren't clipped */
+  overflow: visible; 
 }
 
-/* The toolbar area that holds the Share button */
 .result-card .actions,
 .result .actions,
 .toolbar,
 .card .actions {
-  position: relative; /* anchor the absolute menu */
+  position: relative;
   overflow: visible;
-  z-index: 5; /* above content in the card */
+  z-index: 5; 
 }
 
-/* Dropdown menu panel */
 .dropdown,
 .menu,
 .share-menu {
@@ -611,15 +561,14 @@ main,
   right: 0;
   min-width: 220px;
   padding: 8px;
-  background: rgba(18, 24, 38, 0.96); /* solid, remove “fog” */
+  background: rgba(18, 24, 38, 0.96); 
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
-  z-index: 9999; /* above everything in the card */
-  backdrop-filter: none; /* avoid extra blur/grey cast */
+  z-index: 9999; 
+  backdrop-filter: none; 
 }
 
-/* Menu items */
 .dropdown .item,
 .menu .item,
 .share-menu .item,
@@ -644,12 +593,10 @@ main,
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* ===== Results page dropdown, force out of blur/clip ===== */
 :where(#results, .results, .schedule-results, main) .card {
   overflow: visible;
 }
 
-/* Make the toolbar a positioning context */
 :where(#results, .results, .schedule-results, main)
   .card
   :where(.actions, .actionbar) {
@@ -658,7 +605,6 @@ main,
   z-index: 5;
 }
 
-/* Target the actual Share menu (covers common classnames) */
 :where(#results, .results, .schedule-results, main)
   .card
   :where(.menu[role="menu"], .dropdown[role="menu"], .share-menu) {
@@ -667,18 +613,17 @@ main,
   right: 0 !important;
   min-width: 220px;
   padding: 8px;
-  background: rgba(18, 24, 38, 0.96) !important; /* kill fog */
+  background: rgba(18, 24, 38, 0.96) !important; 
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
   z-index: 9999;
-  filter: none !important; /* in case a parent applies filter */
-  transform: none !important; /* escape transformed parents */
+  filter: none !important; 
+  transform: none !important; 
 }
 
-/* Items */
 :where(#results, .results, .schedule-results, main)
   .card
   :where(.menu[role="menu"], .dropdown[role="menu"], .share-menu)
