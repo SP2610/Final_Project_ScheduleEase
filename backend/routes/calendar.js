@@ -1,15 +1,11 @@
-// backend/routes/calendar.js
+
 const express = require("express");
 const { google } = require("googleapis");
-
 const router = express.Router();
-
-/* ---------------- utilities ---------------- */
 
 const dayIndex = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 0 };
 const BYDAY = { 1: "MO", 2: "TU", 3: "WE", 4: "TH", 5: "FR", 6: "SA", 0: "SU" };
 
-// next Monday (starting at 00:00)
 function nextMonday(from = new Date()) {
   const d = new Date(from);
   const add = (8 - d.getDay()) % 7 || 7;
@@ -18,7 +14,6 @@ function nextMonday(from = new Date()) {
   return d;
 }
 
-// parse "12:30 PM" → {h:12, m:30}  (24h)
 function parse12h(t) {
   if (!t || /TBA/i.test(t)) return null;
   const m = String(t)
@@ -34,7 +29,6 @@ function parse12h(t) {
   return { h, m: min };
 }
 
-// Build an OAuth2 client using refresh token stored on session
 function getOAuth2Client(req) {
   const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = process.env;
   const oAuth2 = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
@@ -43,19 +37,12 @@ function getOAuth2Client(req) {
   return oAuth2;
 }
 
-/* ---------------- route ---------------- */
-
-/**
- * POST /api/calendar/export
- * Body: { name: string, blocks: [{ day:'Mon', start:'12:30 PM', end:'1:50 PM', title, crn }] }
- */
 router.post("/export", async (req, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ ok: false, error: "Not signed in" });
     }
 
-    // ask user to re-consent if we lack a refresh token
     if (!req.user.google?.refreshToken) {
       const authUrl =
         "/api/auth/google?access_type=offline&prompt=consent&scope=" +
@@ -80,7 +67,6 @@ router.post("/export", async (req, res) => {
     const auth = getOAuth2Client(req);
     const calendar = google.calendar({ version: "v3", auth });
 
-    // Choose a timezone (you can swap to user's tz if you store it)
     const timeZone =
       Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles";
 
@@ -95,7 +81,6 @@ router.post("/export", async (req, res) => {
         continue;
       }
 
-      // parse "12:30 PM" etc.
       const startParts = parse12h(b.start);
       const endParts = parse12h(b.end);
       if (!startParts || !endParts) {
@@ -104,7 +89,7 @@ router.post("/export", async (req, res) => {
       }
 
       const evDate = new Date(base);
-      evDate.setDate(base.getDate() + (idx - 1)); // to target weekday
+      evDate.setDate(base.getDate() + (idx - 1)); 
 
       const start = new Date(evDate);
       start.setHours(startParts.h, startParts.m, 0, 0);
@@ -112,7 +97,6 @@ router.post("/export", async (req, res) => {
       const end = new Date(evDate);
       end.setHours(endParts.h, endParts.m, 0, 0);
 
-      // guard against invalid dates
       if (isNaN(start.getTime()) || isNaN(end.getTime())) {
         skipped++;
         continue;
