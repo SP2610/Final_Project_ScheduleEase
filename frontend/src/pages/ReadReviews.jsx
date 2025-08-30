@@ -15,7 +15,6 @@ export default function ReadReviews() {
       setQ(preset);
       doSearch(preset);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function splitName(input) {
@@ -53,7 +52,6 @@ export default function ReadReviews() {
   }
 
   function displayProfessor(r) {
-    // Prefer stored display; otherwise compose from parts; or fallback
     const display =
       (r.professor && r.professor.trim()) ||
       [r.professorLast, r.professorFirst].filter(Boolean).join(", ");
