@@ -4,8 +4,8 @@ import StarRating from "../components/StarRating";
 import { api } from "../lib/api";
 
 export default function WriteReview() {
-  const [name, setName] = useState(""); // "Last, First" OR "Last First"
-  const [rating, setRating] = useState(5); // 1–5 (stars)
+  const [name, setName] = useState(""); 
+  const [rating, setRating] = useState(5); 
   const [courseCode, setCourseCode] = useState("");
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -27,13 +27,13 @@ export default function WriteReview() {
     try {
       setSubmitting(true);
       const { data } = await api.post("/reviews", {
-        professor: name, // ✅ single string
+        professor: name, 
         rating,
-        text: description, // ✅ backend expects "text"
+        text: description,
         courseCode: courseCode.toUpperCase() || undefined,
       });
       if (data.ok) {
-        setMsg("Review submitted ✅");
+        setMsg("Review submitted");
         setName("");
         setRating(5);
         setCourseCode("");
@@ -57,7 +57,7 @@ export default function WriteReview() {
         style={{ padding: 16 }}
         onSubmit={onSubmit}
       >
-        {/* Row 1: Professor */}
+ 
         <div>
           <label className="muted">Professor’s Name</label>
           <input
@@ -69,7 +69,7 @@ export default function WriteReview() {
           />
         </div>
 
-        {/* Row 2: Rating + Course (inline) */}
+       
         <div
           className="grid"
           style={{ gridTemplateColumns: "1fr 240px", gap: 12, marginTop: 12 }}
@@ -100,7 +100,7 @@ export default function WriteReview() {
           </div>
         </div>
 
-        {/* Row 3: Description */}
+  
         <div style={{ marginTop: 12 }}>
           <label className="muted">Description</label>
           <textarea
@@ -112,7 +112,7 @@ export default function WriteReview() {
           />
         </div>
 
-        {/* Footer: submit bottom-right */}
+  
         <div
           style={{ marginTop: 14, display: "flex", justifyContent: "flex-end" }}
         >
