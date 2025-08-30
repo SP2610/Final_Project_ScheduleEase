@@ -375,20 +375,20 @@ class UCRCourseScraper:
         discussions_sorted = sorted(discussions, key=lambda x: int(x['section']))
         
         for lecture in lectures_sorted:
-            lec_num = int(lecture['section'])
+            lecNum = int(lecture['section'])
             
             linked_labs = []
             linked_discussions = []
             
             if len(lectures_sorted) == 2:
-                if lec_num == 1:
+                if lecNum == 1:
                     half_labs = len(labs_sorted) // 2
                     linked_labs = labs_sorted[:half_labs] if labs_sorted else []
                     
                     half_discs = len(discussions_sorted) // 2  
                     linked_discussions = discussions_sorted[:half_discs] if discussions_sorted else []
                     
-                elif lec_num == 2:
+                elif lecNum == 2:
                     half_labs = len(labs_sorted) // 2
                     linked_labs = labs_sorted[half_labs:] if labs_sorted else []
                     
@@ -397,12 +397,12 @@ class UCRCourseScraper:
             else:
                 for lab in labs_sorted:
                     lab_num = int(lab['section'])
-                    if self.sectionslinked(lec_num, lab_num):
+                    if self.sectionslinked(lecNum, lab_num):
                         linked_labs.append(lab)
                 
                 for disc in discussions_sorted:
                     disc_num = int(disc['section'])
-                    if self.sectionslinked(lec_num, disc_num):
+                    if self.sectionslinked(lecNum, disc_num):
                         linked_discussions.append(disc)
             
             labO = linked_labs if linked_labs else [None]
@@ -446,11 +446,11 @@ class UCRCourseScraper:
         
         return combinations
     
-    def sectionslinked(self, lec_num: int, other_num: int) -> bool:
-        if lec_num == 0 or other_num == 0:
+    def sectionslinked(self, lecNum: int, other_num: int) -> bool:
+        if lecNum == 0 or other_num == 0:
             return False
         
-        diff = abs(other_num - lec_num)
+        diff = abs(other_num - lecNum)
         
         if diff == 0:
             return True
@@ -461,7 +461,7 @@ class UCRCourseScraper:
         if diff in [10, 20, 30, 100, 200]:
             return True
             
-        if lec_num // 10 == other_num // 10:
+        if lecNum // 10 == other_num // 10:
             return True
             
         return False
