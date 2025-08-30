@@ -1,4 +1,3 @@
-// frontend/src/App.jsx
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import RequireAuth from "./auth/RequireAuth";
 import Header from "./components/Header";
@@ -10,7 +9,7 @@ import Plan from "./pages/Plan";
 import Results from "./pages/Results";
 import UserProfile from "./pages/UserProfile";
 
-// NEW: reviews pages
+
 import ReadReviews from "./pages/ReadReviews";
 import WriteReview from "./pages/WriteReview";
 
@@ -18,13 +17,10 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public landing */}
         <Route
           path="/"
           element={<Landing />}
         />
-
-        {/* Legacy redirects (public) -> protected /app paths */}
         <Route
           path="/picker"
           element={
@@ -53,7 +49,6 @@ export default function App() {
           }
         />
 
-        {/* Protected app */}
         <Route
           path="/app/*"
           element={
@@ -82,7 +77,6 @@ export default function App() {
                     element={<UserProfile />}
                   />
 
-                  {/* Reviews (NOTE: relative paths, not /app/...) */}
                   <Route
                     path="reviews/write"
                     element={<WriteReview />}
