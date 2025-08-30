@@ -17,6 +17,9 @@ Packages needed to run
 • Pyhon
 • React
 • Node.js
+• npm install
+
+
 
 If you are running on windows look in the main directory and copy the WindowsBoot-Courses.txt into backend/routes/courses.js and scroll down and paste in the directory of where python is located at in your computer.(note** you will see comments that will show you want to put in when you visit the windowboot-courses.txt file)
 
