@@ -1814,8 +1814,8 @@ const courses = [
   { "subject": "WRIT", "code": "302", "title": "University Writing Program" }
 ];
 
-function createSet(section, courseCode, type) {
-  const createB = [];
+function createBlock(section, courseCode, type) {
+  const blocks = [];
   const schedule = section.schedule || 'TBA';
   const parts = schedule.split(' ');
   const days = parts[0] || 'TBA';
@@ -1829,7 +1829,7 @@ function createSet(section, courseCode, type) {
     const dayMap = { M: 'Mon', T: 'Tue', W: 'Wed', R: 'Thu', F: 'Fri' };
     for (const dayChar of days) {
       if (dayMap[dayChar]) {
-        createB.push({
+        blocks.push({
           day: dayMap[dayChar],
           start: startTime || 'TBA',
           end: endTime || 'TBA',
@@ -1845,8 +1845,8 @@ function createSet(section, courseCode, type) {
   return blocks;
 }
 
-function calculateStats(blockss) {
-  const fBlocks = blockss.flat();
+function calculateStats(blocks) {
+  const fBlocks = blocks.flat();
   
   if (fBlocks.length === 0) {
     return { earliest: 'TBA', latest: 'TBA', gaps: 0, days: 0 };
@@ -1952,12 +1952,14 @@ router.post("/generate-schedules", async (req, res) => {
   try {
 
     const pythonScriptPath = path.join(__dirname, '../../scripts/course_scraper.py');
+    
 
     // ex this is my python directory 'C:\\Users\\A\\AppData\\Local\\Programs\\Python\\Python313\\python.exe'
     // Place your python director below in the '', for the const pythonPath = ''; should look something like this
     // const pythonPath = 'C:\\Users\\A\\AppData\\Local\\Programs\\Python\\Python313\\python.exe'
 
-    const pythonPath = ''; 
+    const pythonPath = '';
+    
     const pythonProcess = spawn(pythonPath, [pythonScriptPath, 'generate', ...courseCodes], {
       stdio: ['pipe', 'pipe', 'pipe']
     });
@@ -1995,34 +1997,34 @@ router.post("/generate-schedules", async (req, res) => {
         
 
         const schedules = results.valid_schedules.map((schedule, index) => {
-          const blockss = [];
+          const blocks = [];
           const crns = [];
           
           schedule.courses.forEach(course => {
 
             if (course.lecture) {
-              const lectureBlocks = createSet(course.lecture, course.course_code, 'LEC');
-              blockss.push(...lectureBlocks);
+              const lectureBlocks = createBlock(course.lecture, course.course_code, 'LEC');
+              blocks.push(...lectureBlocks);
               crns.push(course.lecture.crn);
             }
 
             if (course.lab) {
-              const labBlocks = createSet(course.lab, course.course_code, 'LAB');
-              blockss.push(...labBlocks);
+              const labBlocks = createBlock(course.lab, course.course_code, 'LAB');
+              blocks.push(...labBlocks);
               crns.push(course.lab.crn);
             }
             
             if (course.discussion) {
-              const discBlocks = createSet(course.discussion, course.course_code, 'DIS');
-              blockss.push(...discBlocks);
+              const discBlocks = createBlock(course.discussion, course.course_code, 'DIS');
+              blocks.push(...discBlocks);
               crns.push(course.discussion.crn);
             }
           });
           
           return {
             crns,
-            blockss,
-            stats: calculateStats(blockss)
+            blocks,
+            stats: calculateStats(blocks)
           };
         });
         
