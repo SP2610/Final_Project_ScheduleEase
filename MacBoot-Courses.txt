@@ -1823,7 +1823,8 @@ function getPythonPath() {
   const platform = os.platform();
   
   if (platform === 'win32') {
-
+    
+    //Currently having issues with trying to get windows boot to work(if you are windows use other file WindowsBoot-courses.txt)
     const windowsPaths = [
       'C:\\Users\\A\\AppData\\Local\\Programs\\Python\\Python313\\python.exe',
       'C:\\Python313\\python.exe',
@@ -1844,7 +1845,7 @@ function getPythonPath() {
     }
     return 'python';
   } else {
-    const unixPaths = [
+    const unixPaths = [ //Mac Python directory if it doesnt work then change one of these directories to match your python path
       '/Library/Frameworks/Python.framework/Versions/3.13/bin/python3', 
       '/Library/Frameworks/Python.framework/Versions/3.12/bin/python3',
       '/Library/Frameworks/Python.framework/Versions/3.11/bin/python3',
