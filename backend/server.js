@@ -108,7 +108,6 @@ app.use((req, _res, next) => {
 
 app.use("/api/reviews", require("./routes/reviews")); 
 app.use("/api/courses", require("./routes/courses"));
-app.use("/api/schedules", require("./routes/schedules"));
 app.use("/api/calendar", require("./routes/calendar")); 
 
 app.get("/api/me", (req, res) => {
